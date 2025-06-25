@@ -1,5 +1,3 @@
-'use client';
-
 import { Header } from '@/components/header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
@@ -10,6 +8,15 @@ import {
   Mail,
   Code
 } from 'lucide-react';
+import { generateMetadata } from '@/lib/seo-utils';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = generateMetadata({
+  title: 'Privacy Policy - TechInsights',
+  description: 'Learn how TechInsights collects, uses, and protects your personal information. Our commitment to your privacy and data security.',
+  keywords: ['privacy policy', 'data protection', 'techinsights privacy', 'personal information', 'data security'],
+  type: 'website',
+});
 
 export default function PrivacyPolicyPage() {
   const lastUpdated = 'December 25, 2024';
@@ -212,7 +219,7 @@ export default function PrivacyPolicyPage() {
             {/* Children's Privacy */}
             <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-sm">
               <CardHeader>
-                <CardTitle>Children's Privacy</CardTitle>
+                <CardTitle>Children&apos;s Privacy</CardTitle>
               </CardHeader>
               <CardContent className="prose prose-gray max-w-none">
                 <p>
@@ -233,7 +240,7 @@ export default function PrivacyPolicyPage() {
                 <p>
                   We may update this Privacy Policy from time to time to reflect changes in our practices 
                   or applicable laws. We will notify you of any material changes by posting the updated 
-                  policy on our website and updating the "Last updated" date.
+                  policy on our website and updating the &quot;Last updated&quot; date.
                 </p>
                 <p>
                   Your continued use of our website after any changes indicates your acceptance of the 
@@ -257,7 +264,7 @@ export default function PrivacyPolicyPage() {
                 </p>
                 <div className="space-y-2 text-blue-100">
                   <p><strong>Email:</strong> privacy@techinsights.dev</p>
-                  <p><strong>Website:</strong> <Link href="/contact" className=\"text-white hover:underline">Contact Form</Link></p>
+                  <p><strong>Website:</strong> <Link href="/contact" className="text-white hover:underline">Contact Form</Link></p>
                 </div>
               </CardContent>
             </Card>
