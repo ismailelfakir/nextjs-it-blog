@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { 
@@ -18,7 +19,10 @@ import {
   Search, 
   ChevronDown,
   X,
-  Tag
+  Tag,
+  Moon,
+  Sun,
+  Monitor
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -30,7 +34,14 @@ export function Header({ className = '' }: HeaderProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [categories, setCategories] = useState<string[]>([]);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const { theme, setTheme } = useTheme();
   const pathname = usePathname();
+
+  // Ensure component is mounted before rendering theme-dependent content
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Fetch categories from posts
   useEffect(() => {
@@ -80,8 +91,12 @@ export function Header({ className = '' }: HeaderProps) {
     return pathname.startsWith(href);
   };
 
+  if (!mounted) {
+    return null; // Prevent hydration mismatch
+  }
+
   return (
-    <header className={`border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50 ${className}`}>
+    <header className={`border-b bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm sticky top-0 z-50 transition-colors duration-300 ${className}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex items-center justify-between">
           {/* Logo and Brand */}
@@ -93,7 +108,7 @@ export function Header({ className = '' }: HeaderProps) {
               <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 TechInsights
               </h1>
-              <p className="text-sm text-gray-500">IT Blog & Technology News</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">IT Blog & Technology News</p>
             </div>
           </Link>
 
@@ -105,8 +120,8 @@ export function Header({ className = '' }: HeaderProps) {
                 href={link.href}
                 className={`text-sm font-medium transition-colors ${
                   isActiveLink(link.href)
-                    ? 'text-purple-600'
-                    : 'text-gray-700 hover:text-purple-600'
+                    ? 'text-purple-600 dark:text-purple-400'
+                    : 'text-gray-700 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400'
                 }`}
               >
                 {link.label}
@@ -116,30 +131,30 @@ export function Header({ className = '' }: HeaderProps) {
             {/* Categories Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="text-sm font-medium text-gray-700 hover:text-purple-600">
+                <Button variant="ghost" className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400">
                   Categories
                   <ChevronDown className="w-4 h-4 ml-1" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuContent align="end" className="w-56 bg-white dark:bg-slate-800 border-gray-200 dark:border-gray-700">
                 {categories.length > 0 ? (
                   categories.map((category) => (
                     <DropdownMenuItem
                       key={category}
                       onClick={() => handleCategoryClick(category)}
-                      className="cursor-pointer"
+                      className="cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-900 dark:text-gray-100"
                     >
                       <Tag className="w-4 h-4 mr-2" />
                       {category}
                     </DropdownMenuItem>
                   ))
                 ) : (
-                  <DropdownMenuItem disabled>
+                  <DropdownMenuItem disabled className="text-gray-500 dark:text-gray-400">
                     No categories available
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuItem asChild>
-                  <Link href="/categories" className="cursor-pointer">
+                  <Link href="/categories" className="cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-900 dark:text-gray-100">
                     <Tag className="w-4 h-4 mr-2" />
                     View All Categories
                   </Link>
@@ -148,8 +163,46 @@ export function Header({ className = '' }: HeaderProps) {
             </DropdownMenu>
           </nav>
 
-          {/* Search and Actions */}
+          {/* Search, Theme Toggle and Actions */}
           <div className="flex items-center space-x-4">
+            {/* Theme Toggle */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="text-gray-700 dark:text-gray-300">
+                  {theme === 'dark' ? (
+                    <Moon className="w-4 h-4" />
+                  ) : theme === 'light' ? (
+                    <Sun className="w-4 h-4" />
+                  ) : (
+                    <Monitor className="w-4 h-4" />
+                  )}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="bg-white dark:bg-slate-800 border-gray-200 dark:border-gray-700">
+                <DropdownMenuItem 
+                  onClick={() => setTheme('light')}
+                  className="cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-900 dark:text-gray-100"
+                >
+                  <Sun className="w-4 h-4 mr-2" />
+                  Light
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => setTheme('dark')}
+                  className="cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-900 dark:text-gray-100"
+                >
+                  <Moon className="w-4 h-4 mr-2" />
+                  Dark
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => setTheme('system')}
+                  className="cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-900 dark:text-gray-100"
+                >
+                  <Monitor className="w-4 h-4 mr-2" />
+                  System
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             {/* Search */}
             <div className="hidden md:block">
               {isSearchOpen ? (
@@ -159,10 +212,10 @@ export function Header({ className = '' }: HeaderProps) {
                     placeholder="Search articles..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-64"
+                    className="w-64 bg-white dark:bg-slate-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100"
                     autoFocus
                   />
-                  <Button type="submit" size="sm" variant="ghost">
+                  <Button type="submit" size="sm" variant="ghost" className="text-gray-700 dark:text-gray-300">
                     <Search className="w-4 h-4" />
                   </Button>
                   <Button
@@ -170,6 +223,7 @@ export function Header({ className = '' }: HeaderProps) {
                     size="sm"
                     variant="ghost"
                     onClick={() => setIsSearchOpen(false)}
+                    className="text-gray-700 dark:text-gray-300"
                   >
                     <X className="w-4 h-4" />
                   </Button>
@@ -179,7 +233,7 @@ export function Header({ className = '' }: HeaderProps) {
                   variant="ghost"
                   size="sm"
                   onClick={() => setIsSearchOpen(true)}
-                  className="text-gray-700 hover:text-purple-600"
+                  className="text-gray-700 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400"
                 >
                   <Search className="w-4 h-4" />
                 </Button>
@@ -190,7 +244,7 @@ export function Header({ className = '' }: HeaderProps) {
             <Link href="/subscribe" className="hidden md:block">
               <Button 
                 size="sm" 
-                className="bg-purple-600 text-white hover:bg-purple-700 transition-colors"
+                className="bg-purple-600 text-white hover:bg-purple-700 dark:bg-purple-700 dark:hover:bg-purple-800 transition-colors"
               >
                 Subscribe
               </Button>
@@ -199,11 +253,11 @@ export function Header({ className = '' }: HeaderProps) {
             {/* Mobile Menu */}
             <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="sm" className="lg:hidden">
+                <Button variant="ghost" size="sm" className="lg:hidden text-gray-700 dark:text-gray-300">
                   <Menu className="w-5 h-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-80">
+              <SheetContent side="right" className="w-80 bg-white dark:bg-slate-900 border-gray-200 dark:border-gray-700">
                 <div className="flex flex-col space-y-6 mt-6">
                   {/* Mobile Search */}
                   <form onSubmit={handleSearch} className="flex space-x-2">
@@ -212,9 +266,9 @@ export function Header({ className = '' }: HeaderProps) {
                       placeholder="Search articles..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="flex-1"
+                      className="flex-1 bg-white dark:bg-slate-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100"
                     />
-                    <Button type="submit" size="sm">
+                    <Button type="submit" size="sm" className="bg-purple-600 hover:bg-purple-700 dark:bg-purple-700 dark:hover:bg-purple-800">
                       <Search className="w-4 h-4" />
                     </Button>
                   </form>
@@ -228,8 +282,8 @@ export function Header({ className = '' }: HeaderProps) {
                         onClick={() => setIsMobileMenuOpen(false)}
                         className={`text-lg font-medium transition-colors ${
                           isActiveLink(link.href)
-                            ? 'text-purple-600'
-                            : 'text-gray-700 hover:text-purple-600'
+                            ? 'text-purple-600 dark:text-purple-400'
+                            : 'text-gray-700 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400'
                         }`}
                       >
                         {link.label}
@@ -239,7 +293,7 @@ export function Header({ className = '' }: HeaderProps) {
 
                   {/* Mobile Categories */}
                   <div className="space-y-3">
-                    <h3 className="text-lg font-semibold text-gray-900">Categories</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Categories</h3>
                     <div className="grid grid-cols-2 gap-2">
                       {categories.slice(0, 8).map((category) => (
                         <Button
@@ -250,7 +304,7 @@ export function Header({ className = '' }: HeaderProps) {
                             handleCategoryClick(category);
                             setIsMobileMenuOpen(false);
                           }}
-                          className="justify-start text-xs"
+                          className="justify-start text-xs bg-white dark:bg-slate-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-slate-700"
                         >
                           <Tag className="w-3 h-3 mr-1" />
                           {category}
@@ -258,7 +312,7 @@ export function Header({ className = '' }: HeaderProps) {
                       ))}
                     </div>
                     <Link href="/categories" onClick={() => setIsMobileMenuOpen(false)}>
-                      <Button variant="ghost" size="sm" className="w-full justify-start">
+                      <Button variant="ghost" size="sm" className="w-full justify-start text-gray-700 dark:text-gray-300">
                         View All Categories
                       </Button>
                     </Link>
@@ -267,7 +321,7 @@ export function Header({ className = '' }: HeaderProps) {
                   {/* Mobile Subscribe */}
                   <Link href="/subscribe" onClick={() => setIsMobileMenuOpen(false)}>
                     <Button 
-                      className="w-full bg-purple-600 text-white hover:bg-purple-700"
+                      className="w-full bg-purple-600 text-white hover:bg-purple-700 dark:bg-purple-700 dark:hover:bg-purple-800"
                     >
                       Subscribe
                     </Button>

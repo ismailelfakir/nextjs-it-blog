@@ -78,7 +78,7 @@ export default function Home() {
         }}
       />
       
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 transition-colors duration-300">
         <Header />
 
         {/* Hero Section */}
@@ -86,13 +86,13 @@ export default function Home() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center space-y-8">
               <div className="space-y-4">
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight">
+                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-gray-900 dark:text-white">
                   Welcome to my{' '}
                   <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
                     IT Blog
                   </span>
                 </h1>
-                <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+                <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed">
                   Dive deep into the world of technology with expert insights, practical tutorials, 
                   and the latest trends in software development, cybersecurity, and IT infrastructure.
                 </p>
@@ -105,7 +105,7 @@ export default function Home() {
                   </Button>
                 </Link>
                 <Link href="/categories">
-                  <Button variant="outline" size="lg" className="px-8">
+                  <Button variant="outline" size="lg" className="px-8 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800">
                     Browse Categories
                     <ArrowRight className="w-5 h-5 ml-2" />
                   </Button>
@@ -116,24 +116,24 @@ export default function Home() {
         </section>
 
         {/* Categories Grid */}
-        <section className="py-16 bg-white/50">
+        <section className="py-16 bg-white/50 dark:bg-slate-800/50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-foreground mb-4">Explore Categories</h2>
-              <p className="text-muted-foreground text-lg">Find content tailored to your interests</p>
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Explore Categories</h2>
+              <p className="text-gray-600 dark:text-gray-300 text-lg">Find content tailored to your interests</p>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
               {categories.map((category) => {
                 const IconComponent = category.icon;
                 return (
                   <Link key={category.name} href={`/blog?tag=${encodeURIComponent(category.name.toLowerCase())}`}>
-                    <Card className="group hover:shadow-lg transition-all duration-300 cursor-pointer border-0 bg-white/80 backdrop-blur-sm">
+                    <Card className="group hover:shadow-lg transition-all duration-300 cursor-pointer border-0 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
                       <CardContent className="p-6 text-center">
                         <div className={`w-12 h-12 rounded-xl ${category.color} flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300`}>
                           <IconComponent className="w-6 h-6 text-white" />
                         </div>
-                        <h3 className="font-semibold text-foreground mb-1">{category.name}</h3>
-                        <p className="text-sm text-muted-foreground">{category.count} articles</p>
+                        <h3 className="font-semibold text-gray-900 dark:text-white mb-1">{category.name}</h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{category.count} articles</p>
                       </CardContent>
                     </Card>
                   </Link>
@@ -147,38 +147,38 @@ export default function Home() {
         <section className="py-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-foreground mb-4">Featured Articles</h2>
-              <p className="text-muted-foreground text-lg">Latest insights from industry experts</p>
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Featured Articles</h2>
+              <p className="text-gray-600 dark:text-gray-300 text-lg">Latest insights from industry experts</p>
             </div>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               {featuredPosts.map((post, index) => (
-                <Card key={index} className="group hover:shadow-xl transition-all duration-300 cursor-pointer border-0 bg-white/80 backdrop-blur-sm overflow-hidden">
+                <Card key={index} className="group hover:shadow-xl transition-all duration-300 cursor-pointer border-0 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm overflow-hidden">
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between mb-3">
-                      <Badge variant="secondary" className="text-xs">
+                      <Badge variant="secondary" className="text-xs bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300">
                         {post.category}
                       </Badge>
-                      <div className="flex items-center text-xs text-muted-foreground">
+                      <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
                         <Calendar className="w-3 h-3 mr-1" />
                         {post.date}
                       </div>
                     </div>
-                    <CardTitle className="text-xl group-hover:text-blue-600 transition-colors line-clamp-2">
+                    <CardTitle className="text-xl group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2 text-gray-900 dark:text-white">
                       {post.title}
                     </CardTitle>
-                    <CardDescription className="text-sm leading-relaxed line-clamp-3">
+                    <CardDescription className="text-sm leading-relaxed line-clamp-3 text-gray-600 dark:text-gray-300">
                       {post.description}
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="pt-0">
                     <div className="flex flex-wrap gap-2 mb-4">
                       {post.tags.map((tag, tagIndex) => (
-                        <Badge key={tagIndex} variant="outline" className="text-xs">
+                        <Badge key={tagIndex} variant="outline" className="text-xs border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400">
                           {tag}
                         </Badge>
                       ))}
                     </div>
-                    <div className="flex items-center justify-between text-sm text-muted-foreground">
+                    <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
                       <div className="flex items-center">
                         <User className="w-4 h-4 mr-1" />
                         {post.author}
@@ -191,7 +191,7 @@ export default function Home() {
             </div>
             <div className="text-center mt-12">
               <Link href="/blog">
-                <Button variant="outline" size="lg" className="px-8">
+                <Button variant="outline" size="lg" className="px-8 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800">
                   View All Articles
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
@@ -201,18 +201,18 @@ export default function Home() {
         </section>
 
         {/* Newsletter Section */}
-        <section className="py-16 bg-gradient-to-r from-blue-600 to-purple-600">
+        <section className="py-16 bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-700 dark:to-purple-700">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <div className="space-y-6">
               <h2 className="text-3xl font-bold text-white">Stay Updated</h2>
-              <p className="text-xl text-blue-100">
+              <p className="text-xl text-blue-100 dark:text-blue-200">
                 Get the latest tech insights and tutorials delivered to your inbox
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
                 <input
                   type="email"
                   placeholder="Enter your email"
-                  className="flex-1 px-4 py-3 rounded-lg border-0 text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-white/50 focus:outline-none"
+                  className="flex-1 px-4 py-3 rounded-lg border-0 text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-white/50 focus:outline-none"
                 />
                 <Button className="bg-white text-blue-600 hover:bg-gray-100 px-8">
                   Subscribe
@@ -223,7 +223,7 @@ export default function Home() {
         </section>
 
         {/* Footer */}
-        <footer className="bg-slate-900 text-white py-12">
+        <footer className="bg-slate-900 dark:bg-slate-950 text-white py-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
               <div className="flex items-center justify-center space-x-3 mb-4">
@@ -232,15 +232,15 @@ export default function Home() {
                 </div>
                 <span className="text-xl font-bold">TechInsights</span>
               </div>
-              <p className="text-slate-400 mb-6">
+              <p className="text-slate-400 dark:text-slate-500 mb-6">
                 Empowering IT professionals with knowledge and insights
               </p>
-              <div className="flex justify-center space-x-6 text-sm text-slate-400">
+              <div className="flex justify-center space-x-6 text-sm text-slate-400 dark:text-slate-500">
                 <Link href="/privacy-policy" className="hover:text-white transition-colors">Privacy Policy</Link>
                 <Link href="#" className="hover:text-white transition-colors">Terms of Service</Link>
                 <Link href="/contact" className="hover:text-white transition-colors">Contact</Link>
               </div>
-              <div className="mt-8 pt-6 border-t border-slate-800 text-slate-500 text-sm">
+              <div className="mt-8 pt-6 border-t border-slate-800 dark:border-slate-700 text-slate-500 dark:text-slate-600 text-sm">
                 © 2024 TechInsights. All rights reserved.
               </div>
             </div>
