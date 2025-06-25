@@ -1,47 +1,47 @@
+import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { ShareButton } from '@/components/share-button';
 import { 
   Calendar, 
   User, 
   Clock,
   ArrowLeft,
   BookOpen,
-  Tag,
-  Share2
+  Tag
 } from 'lucide-react';
-import connectDB from '@/lib/db';
-import Post from '@/models/Post';
-import { generateBlogPostMetadata, generateStructuredData } from '@/lib/seo-utils';
-import { getReadingTime, formatDate } from '@/lib/date-utils';
-import type { Metadata } from 'next';
+import { generateBlogPostMetadata } from '@/lib/seo-utils';
 
-interface BlogPostPageProps {
-  params: {
-    slug: string;
-  };
+interface Post {
+  id: string;
+  title: string;
+  slug: string;
+  content: string;
+  tags: string[];
+  createdAt: string;
+  updatedAt: string;
 }
 
-async function getPost(slug: string) {
+interface BlogPostPageProps {
+  params: { slug: string };
+}
+
+async function getPost(slug: string): Promise<Post | null> {
   try {
-    await connectDB();
-    const post = await Post.findOne({ slug }).lean();
+    const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+    const response = await fetch(`${baseUrl}/api/posts/slug/${slug}`, {
+      cache: 'no-store'
+    });
     
-    if (!post) {
+    if (!response.ok) {
       return null;
     }
-
-    return {
-      id: post._id.toString(),
-      title: post.title,
-      slug: post.slug,
-      content: post.content,
-      tags: post.tags,
-      createdAt: post.createdAt.toISOString(),
-      updatedAt: post.updatedAt.toISOString(),
-    };
+    
+    const data = await response.json();
+    return data.success ? data.data : null;
   } catch (error) {
     console.error('Error fetching post:', error);
     return null;
@@ -53,9 +53,8 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
   
   if (!post) {
     return {
-      title: 'Post Not Found | TechInsights',
+      title: 'Post Not Found - TechInsights',
       description: 'The requested blog post could not be found.',
-      robots: 'noindex',
     };
   }
 
@@ -69,24 +68,54 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     notFound();
   }
 
-  const articleStructuredData = generateStructuredData({
-    type: 'Article',
-    title: post.title,
-    description: post.content.substring(0, 160),
-    url: `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/blog/${post.slug}`,
-    datePublished: post.createdAt,
-    dateModified: post.updatedAt,
-    author: 'TechInsights Admin',
-    tags: post.tags,
-  });
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  const getReadingTime = (content: string) => {
+    const wordsPerMinute = 200;
+    const wordCount = content.split(/\s+/).length;
+    const readingTime = Math.ceil(wordCount / wordsPerMinute);
+    return `${readingTime} min read`;
+  };
+
+  // Generate structured data for the blog post
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": post.title,
+    "description": post.content.replace(/<[^>]*>/g, '').substring(0, 160),
+    "author": {
+      "@type": "Person",
+      "name": "Admin"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "TechInsights",
+      "logo": {
+        "@type": "ImageObject",
+        "url": `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/logo.png`
+      }
+    },
+    "datePublished": post.createdAt,
+    "dateModified": post.updatedAt,
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/blog/${post.slug}`
+    },
+    "keywords": post.tags.join(', ')
+  };
 
   return (
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(articleStructuredData),
-        }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
       
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
@@ -168,25 +197,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                       </div>
                     </div>
                     
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200"
-                      onClick={() => {
-                        if (navigator.share) {
-                          navigator.share({
-                            title: post.title,
-                            text: `Check out this article: ${post.title}`,
-                            url: window.location.href,
-                          });
-                        } else {
-                          navigator.clipboard.writeText(window.location.href);
-                        }
-                      }}
-                    >
-                      <Share2 className="w-4 h-4 mr-2" />
-                      Share
-                    </Button>
+                    <ShareButton title={post.title} />
                   </div>
                 </header>
 
@@ -199,7 +210,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                       fontSize: '1.1rem'
                     }}
                     dangerouslySetInnerHTML={{ 
-                      __html: post.content
+                      __html: post.content.replace(/\n/g, '<br />') 
                     }}
                   />
                 </div>
@@ -212,25 +223,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                     </div>
                     
                     <div className="flex items-center space-x-4">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200"
-                        onClick={() => {
-                          if (navigator.share) {
-                            navigator.share({
-                              title: post.title,
-                              text: `Check out this article: ${post.title}`,
-                              url: window.location.href,
-                            });
-                          } else {
-                            navigator.clipboard.writeText(window.location.href);
-                          }
-                        }}
-                      >
-                        <Share2 className="w-4 h-4 mr-2" />
-                        Share Article
-                      </Button>
+                      <ShareButton title={post.title} />
                     </div>
                   </div>
                 </footer>
