@@ -1,14 +1,9 @@
+'use client';
+
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ArrowLeft, BookOpen, Home } from 'lucide-react';
-import type { Metadata } from 'next';
-
-export const metadata: Metadata = {
-  title: 'Page Not Found | TechInsights',
-  description: 'The page you are looking for could not be found.',
-  robots: 'noindex',
-};
 
 export default function NotFound() {
   return (
