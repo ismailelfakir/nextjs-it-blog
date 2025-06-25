@@ -2,6 +2,7 @@ import './globals.css';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { Providers } from './providers';
+import { ThemeProvider } from '@/components/theme-provider';
 import { generateMetadata, generateStructuredData } from '@/lib/seo-utils';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -27,7 +28,7 @@ export default function RootLayout({
   });
 
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="icon" href="/favicon.ico" />
         <link rel="canonical" href={process.env.NEXTAUTH_URL || 'http://localhost:3000'} />
@@ -51,9 +52,16 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className}>
-        <Providers>
-          {children}
-        </Providers>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <Providers>
+            {children}
+          </Providers>
+        </ThemeProvider>
       </body>
     </html>
   );
