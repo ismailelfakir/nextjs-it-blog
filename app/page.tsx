@@ -1,3 +1,4 @@
+import { Header } from '@/components/header';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -78,31 +79,7 @@ export default function Home() {
       />
       
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
-        {/* Header */}
-        <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-tr from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
-                  <Code className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                    TechInsights
-                  </h1>
-                  <p className="text-sm text-muted-foreground">IT Blog & Technology News</p>
-                </div>
-              </div>
-              <nav className="hidden md:flex items-center space-x-8">
-                <Link href="/" className="text-sm font-medium text-foreground hover:text-blue-600 transition-colors">Home</Link>
-                <Link href="/blog" className="text-sm font-medium text-muted-foreground hover:text-blue-600 transition-colors">Articles</Link>
-                <Button size="sm" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-                  Subscribe
-                </Button>
-              </nav>
-            </div>
-          </div>
-        </header>
+        <Header />
 
         {/* Hero Section */}
         <section className="relative py-20 lg:py-28">
@@ -127,7 +104,7 @@ export default function Home() {
                     Start Reading
                   </Button>
                 </Link>
-                <Link href="/blog">
+                <Link href="/categories">
                   <Button variant="outline" size="lg" className="px-8">
                     Browse Categories
                     <ArrowRight className="w-5 h-5 ml-2" />
@@ -149,15 +126,17 @@ export default function Home() {
               {categories.map((category) => {
                 const IconComponent = category.icon;
                 return (
-                  <Card key={category.name} className="group hover:shadow-lg transition-all duration-300 cursor-pointer border-0 bg-white/80 backdrop-blur-sm">
-                    <CardContent className="p-6 text-center">
-                      <div className={`w-12 h-12 rounded-xl ${category.color} flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300`}>
-                        <IconComponent className="w-6 h-6 text-white" />
-                      </div>
-                      <h3 className="font-semibold text-foreground mb-1">{category.name}</h3>
-                      <p className="text-sm text-muted-foreground">{category.count} articles</p>
-                    </CardContent>
-                  </Card>
+                  <Link key={category.name} href={`/blog?tag=${encodeURIComponent(category.name.toLowerCase())}`}>
+                    <Card className="group hover:shadow-lg transition-all duration-300 cursor-pointer border-0 bg-white/80 backdrop-blur-sm">
+                      <CardContent className="p-6 text-center">
+                        <div className={`w-12 h-12 rounded-xl ${category.color} flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300`}>
+                          <IconComponent className="w-6 h-6 text-white" />
+                        </div>
+                        <h3 className="font-semibold text-foreground mb-1">{category.name}</h3>
+                        <p className="text-sm text-muted-foreground">{category.count} articles</p>
+                      </CardContent>
+                    </Card>
+                  </Link>
                 );
               })}
             </div>
@@ -257,9 +236,9 @@ export default function Home() {
                 Empowering IT professionals with knowledge and insights
               </p>
               <div className="flex justify-center space-x-6 text-sm text-slate-400">
-                <Link href="#" className="hover:text-white transition-colors">Privacy Policy</Link>
+                <Link href="/privacy-policy" className="hover:text-white transition-colors">Privacy Policy</Link>
                 <Link href="#" className="hover:text-white transition-colors">Terms of Service</Link>
-                <Link href="#" className="hover:text-white transition-colors">Contact</Link>
+                <Link href="/contact" className="hover:text-white transition-colors">Contact</Link>
               </div>
               <div className="mt-8 pt-6 border-t border-slate-800 text-slate-500 text-sm">
                 © 2024 TechInsights. All rights reserved.

@@ -29,6 +29,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <link rel="icon" href="/favicon.ico" />
         <link rel="canonical" href={process.env.NEXTAUTH_URL || 'http://localhost:3000'} />
         <link rel="alternate" type="application/rss+xml" title="TechInsights RSS Feed" href="/rss.xml" />
         <meta name="theme-color" content="#2563eb" />
