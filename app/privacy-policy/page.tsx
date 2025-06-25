@@ -1,10 +1,12 @@
+'use client';
+
 import { Header } from '@/components/header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
-import { 
-  Shield, 
-  Eye, 
-  Lock, 
+import {
+  Shield,
+  Eye,
+  Lock,
   Mail,
   Code
 } from 'lucide-react';
@@ -264,7 +266,7 @@ export default function PrivacyPolicyPage() {
                 </p>
                 <div className="space-y-2 text-blue-100 dark:text-blue-200">
                   <p><strong>Email:</strong> privacy@techinsights.dev</p>
-                  <p><strong>Website:</strong> <Link href="/contact" className=\"text-white hover:underline">Contact Form</Link></p>
+                  <p><strong>Website:</strong> <Link href="/contact" className="text-white hover:underline">Contact Form</Link></p>
                 </div>
               </CardContent>
             </Card>
