@@ -140,15 +140,15 @@ Create a `.env.local` file in the root directory:
 # Database
 MONGODB_URI=mongodb://localhost:27017/techinsights
 # or for MongoDB Atlas:
-# MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/techinsights
+# MONGODB_URI=your_mongo_uri
 
 # NextAuth.js
 NEXTAUTH_URL=http://localhost:3000
 NEXTAUTH_SECRET=your-secret-key-change-in-production
 
 # Admin Credentials
-ADMIN_EMAIL=admin@techinsights.com
-ADMIN_PASSWORD=admin123
+ADMIN_EMAIL=your_email_admin
+ADMIN_PASSWORD=your_password_admin
 
 # Cloudinary Configuration
 CLOUDINARY_CLOUD_NAME=your-cloud-name
