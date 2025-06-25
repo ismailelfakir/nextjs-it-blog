@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import mongoose, { Document, Schema, Model } from 'mongoose';
 
 export interface IPost extends Document {
   title: string;
@@ -7,9 +7,15 @@ export interface IPost extends Document {
   tags: string[];
   createdAt: Date;
   updatedAt: Date;
+  addTag(tag: string): Promise<IPost>;
+  removeTag(tag: string): Promise<IPost>;
 }
 
-const PostSchema: Schema = new Schema(
+interface IPostModel extends Model<IPost> {
+  findByTag(tag: string): Promise<IPost[]>;
+}
+
+const PostSchema: Schema<IPost> = new Schema(
   {
     title: {
       type: String,
@@ -44,7 +50,7 @@ const PostSchema: Schema = new Schema(
     },
   },
   {
-    timestamps: true, // This automatically adds createdAt and updatedAt fields
+    timestamps: true,
     toJSON: {
       transform: function (doc, ret) {
         ret.id = ret._id;
@@ -56,30 +62,30 @@ const PostSchema: Schema = new Schema(
   }
 );
 
-// Create indexes for better query performance
+// Indexes
 PostSchema.index({ slug: 1 });
 PostSchema.index({ tags: 1 });
 PostSchema.index({ createdAt: -1 });
 
-// Pre-save middleware to ensure slug is URL-friendly
-PostSchema.pre('save', function (next) {
+// Pre-save middleware with proper type
+PostSchema.pre<IPost>('save', function (next) {
   if (this.isModified('slug')) {
     this.slug = this.slug
       .toLowerCase()
       .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
-      .replace(/\s+/g, '-') // Replace spaces with hyphens
-      .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
-      .trim('-'); // Remove leading/trailing hyphens
+      .replace(/\s+/g, '-')         // Replace spaces with hyphens
+      .replace(/-+/g, '-')          // Replace multiple hyphens with single hyphen
+      .replace(/^-+|-+$/g, '');     // Trim leading/trailing hyphens
   }
   next();
 });
 
-// Static method to find posts by tag
+// Static method
 PostSchema.statics.findByTag = function (tag: string) {
   return this.find({ tags: { $in: [tag] } }).sort({ createdAt: -1 });
 };
 
-// Instance method to add a tag
+// Instance methods
 PostSchema.methods.addTag = function (tag: string) {
   if (!this.tags.includes(tag)) {
     this.tags.push(tag);
@@ -87,10 +93,9 @@ PostSchema.methods.addTag = function (tag: string) {
   return this.save();
 };
 
-// Instance method to remove a tag
 PostSchema.methods.removeTag = function (tag: string) {
   this.tags = this.tags.filter((t: string) => t !== tag);
   return this.save();
 };
 
-export default mongoose.models.Post || mongoose.model<IPost>('Post', PostSchema);
+export default (mongoose.models.Post as IPostModel) || mongoose.model<IPost, IPostModel>('Post', PostSchema);
