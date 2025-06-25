@@ -75,7 +75,6 @@ export default function Home() {
             <nav className="hidden md:flex items-center space-x-8">
               <Link href="/" className="text-sm font-medium text-foreground hover:text-blue-600 transition-colors">Home</Link>
               <Link href="/blog" className="text-sm font-medium text-muted-foreground hover:text-blue-600 transition-colors">Articles</Link>
-              <Link href="/admin/login" className="text-sm font-medium text-muted-foreground hover:text-blue-600 transition-colors">Admin</Link>
               <Button size="sm" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
                 Subscribe
               </Button>
@@ -240,7 +239,6 @@ export default function Home() {
               <Link href="#" className="hover:text-white transition-colors">Privacy Policy</Link>
               <Link href="#" className="hover:text-white transition-colors">Terms of Service</Link>
               <Link href="#" className="hover:text-white transition-colors">Contact</Link>
-              <Link href="/admin/login" className="hover:text-white transition-colors">Admin</Link>
             </div>
             <div className="mt-8 pt-6 border-t border-slate-800 text-slate-500 text-sm">
               © 2024 TechInsights. All rights reserved.
