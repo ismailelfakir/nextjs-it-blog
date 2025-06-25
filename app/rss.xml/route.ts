@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
       <guid isPermaLink="true">${baseUrl}/blog/${post.slug}</guid>
       <pubDate>${pubDate}</pubDate>
       <author>admin@techinsights.com (TechInsights Admin)</author>
-      ${post.tags.map(tag => `<category><![CDATA[${tag}]]></category>`).join('')}
+      ${(post.tags as string[]).map((tag: string) => `<category><![CDATA[${tag}]]></category>`).join('')}
     </item>`;
     }).join('')}
   </channel>
