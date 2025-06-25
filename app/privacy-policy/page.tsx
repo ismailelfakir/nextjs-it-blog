@@ -1,3 +1,5 @@
+'use client';
+
 import { Header } from '@/components/header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
@@ -8,15 +10,6 @@ import {
   Mail,
   Code
 } from 'lucide-react';
-import { generateMetadata } from '@/lib/seo-utils';
-import type { Metadata } from 'next';
-
-export const metadata: Metadata = generateMetadata({
-  title: 'Privacy Policy - TechInsights',
-  description: 'Learn how TechInsights collects, uses, and protects your personal information. Our commitment to your privacy and data security.',
-  keywords: ['privacy policy', 'data protection', 'techinsights privacy', 'personal information', 'data security'],
-  type: 'website',
-});
 
 export default function PrivacyPolicyPage() {
   const lastUpdated = 'December 25, 2024';
@@ -264,7 +257,7 @@ export default function PrivacyPolicyPage() {
                 </p>
                 <div className="space-y-2 text-blue-100">
                   <p><strong>Email:</strong> privacy@techinsights.dev</p>
-                  <p><strong>Website:</strong> <Link href="/contact" className=\"text-white hover:underline">Contact Form</Link></p>
+                  <p><strong>Website:</strong> <Link href="/contact" className="text-white hover:underline">Contact Form</Link></p>
                 </div>
               </CardContent>
             </Card>
