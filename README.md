@@ -138,7 +138,7 @@ Create a `.env.local` file in the root directory:
 
 ```env
 # Database
-MONGODB_URI=mongodb://localhost:27017/techinsights
+MONGODB_URI=your_mongo_uri
 # or for MongoDB Atlas:
 # MONGODB_URI=your_mongo_uri
 
@@ -170,8 +170,8 @@ Visit [http://localhost:3000](http://localhost:3000) to see the application.
 | `MONGODB_URI` | MongoDB connection string | ✅ | - |
 | `NEXTAUTH_URL` | Application URL | ✅ | `http://localhost:3000` |
 | `NEXTAUTH_SECRET` | NextAuth.js secret key | ✅ | - |
-| `ADMIN_EMAIL` | Admin login email | ✅ | `admin@techinsights.com` |
-| `ADMIN_PASSWORD` | Admin login password | ✅ | `admin123` |
+| `ADMIN_EMAIL` | Admin login email | ✅ | `your_admin_email` |
+| `ADMIN_PASSWORD` | Admin login password | ✅ | `your_password` |
 | `CLOUDINARY_CLOUD_NAME` | Cloudinary cloud name | ✅ | - |
 | `CLOUDINARY_API_KEY` | Cloudinary API key | ✅ | - |
 | `CLOUDINARY_API_SECRET` | Cloudinary API secret | ✅ | - |
