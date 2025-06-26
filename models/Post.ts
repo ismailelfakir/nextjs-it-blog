@@ -1,12 +1,13 @@
 import mongoose, { Document, Schema, Model } from 'mongoose';
 
 export interface IPost extends Document {
+  id: string;
   title: string;
   slug: string;
   content: string;
   tags: string[];
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string;
+  updatedAt: string;
   addTag(tag: string): Promise<IPost>;
   removeTag(tag: string): Promise<IPost>;
 }
@@ -26,7 +27,6 @@ const PostSchema: Schema<IPost> = new Schema(
     slug: {
       type: String,
       required: [true, 'Slug is required'],
-      unique: true,
       trim: true,
       lowercase: true,
       match: [
@@ -53,34 +53,36 @@ const PostSchema: Schema<IPost> = new Schema(
     timestamps: true,
     toJSON: {
       transform: function (doc, ret) {
-        ret.id = ret._id;
+        ret.id = ret._id.toString();
         delete ret._id;
         delete ret.__v;
+        ret.createdAt = ret.createdAt.toISOString();
+        ret.updatedAt = ret.updatedAt.toISOString();
         return ret;
       },
     },
   }
 );
 
-// Indexes
-PostSchema.index({ slug: 1 });
+// ✅ Cleaned up indexes
+PostSchema.index({ slug: 1 }, { unique: true }); // single definition
 PostSchema.index({ tags: 1 });
 PostSchema.index({ createdAt: -1 });
 
-// Pre-save middleware with proper type
+// Normalize slug before saving
 PostSchema.pre<IPost>('save', function (next) {
   if (this.isModified('slug')) {
     this.slug = this.slug
       .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
-      .replace(/\s+/g, '-')         // Replace spaces with hyphens
-      .replace(/-+/g, '-')          // Replace multiple hyphens with single hyphen
-      .replace(/^-+|-+$/g, '');     // Trim leading/trailing hyphens
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-+|-+$/g, '');
   }
   next();
 });
 
-// Static method
+// Static method to find posts by tag
 PostSchema.statics.findByTag = function (tag: string) {
   return this.find({ tags: { $in: [tag] } }).sort({ createdAt: -1 });
 };

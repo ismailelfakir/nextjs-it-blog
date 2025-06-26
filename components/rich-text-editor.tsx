@@ -4,25 +4,31 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import { useState } from 'react';
-import { 
-  Bold, 
-  Italic, 
-  Strikethrough, 
-  Code, 
-  Heading1, 
-  Heading2, 
-  List, 
-  ListOrdered, 
-  Quote, 
-  Undo, 
+import {
+  Bold,
+  Italic,
+  Strikethrough,
+  Code,
+  Heading1,
+  Heading2,
+  List,
+  ListOrdered,
+  Quote,
+  Undo,
   Redo,
-  ImageIcon,
-  Link,
-  Loader2
+  Image as ImageIcon,
+  Link as LinkIcon,
+  Loader2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ImageUpload } from '@/components/image-upload';
@@ -33,7 +39,11 @@ interface RichTextEditorProps {
   placeholder?: string;
 }
 
-export function RichTextEditor({ content, onChange, placeholder = "Start writing..." }: RichTextEditorProps) {
+export function RichTextEditor({
+  content,
+  onChange,
+  placeholder = 'Start writing...',
+}: RichTextEditorProps) {
   const [imageDialogOpen, setImageDialogOpen] = useState(false);
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
   const [linkUrl, setLinkUrl] = useState('');
@@ -52,6 +62,7 @@ export function RichTextEditor({ content, onChange, placeholder = "Start writing
         },
       }),
       Image.configure({
+        inline: true,
         HTMLAttributes: {
           class: 'rounded-lg max-w-full h-auto',
         },
@@ -63,9 +74,11 @@ export function RichTextEditor({ content, onChange, placeholder = "Start writing
     },
     editorProps: {
       attributes: {
-        class: 'prose prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none min-h-[300px] p-4',
+        class:
+          'prose prose-sm sm:prose-lg mx-auto focus:outline-none min-h-[300px] p-4',
       },
     },
+    immediatelyRender: false, // Prevent SSR issues
   });
 
   if (!editor) {
@@ -76,45 +89,57 @@ export function RichTextEditor({ content, onChange, placeholder = "Start writing
     );
   }
 
-  const ToolbarButton = ({ 
-    onClick, 
-    isActive = false, 
-    children, 
+  const ToolbarButton = ({
+    onClick,
+    isActive = false,
+    children,
     title,
-    disabled = false
-  }: { 
-    onClick: () => void; 
-    isActive?: boolean; 
+    disabled = false,
+  }: {
+    onClick: () => void;
+    isActive?: boolean;
     children: React.ReactNode;
     title: string;
     disabled?: boolean;
   }) => (
     <Button
       type="button"
-      variant={isActive ? "default" : "ghost"}
+      variant={isActive ? 'default' : 'ghost'}
       size="sm"
       onClick={onClick}
       disabled={disabled}
       title={title}
-      className={`h-8 w-8 p-0 ${isActive ? 'bg-blue-600 text-white' : ''}`}
+      className={`h-8 w-8 p-0 ${isActive ? 'bg-blue-600 text-white hover:bg-blue-700' : ''}`}
     >
       {children}
     </Button>
   );
 
   const handleImageUpload = (imageUrl: string, publicId: string) => {
-    editor.chain().focus().setImage({ src: imageUrl, alt: 'Uploaded image' }).run();
-    setImageDialogOpen(false);
+    if (editor) {
+      editor
+        .chain()
+        .focus()
+        .setImage({ src: imageUrl, alt: 'Uploaded image' })
+        .run();
+      setImageDialogOpen(false);
+    }
   };
 
   const handleImageError = (error: string) => {
     console.error('Image upload error:', error);
-    // You could show a toast notification here
+    // TODO: Implement toast notification
   };
 
   const handleAddLink = () => {
-    if (linkUrl && linkText) {
-      editor.chain().focus().insertContent(`<a href="${linkUrl}" target="_blank" rel="noopener noreferrer">${linkText}</a>`).run();
+    if (linkUrl && linkText && editor) {
+      editor
+        .chain()
+        .focus()
+        .insertContent(
+          `<a href="${linkUrl}" target="_blank" rel="noopener noreferrer">${linkText}</a>`
+        )
+        .run();
       setLinkUrl('');
       setLinkText('');
       setLinkDialogOpen(false);
@@ -122,7 +147,7 @@ export function RichTextEditor({ content, onChange, placeholder = "Start writing
   };
 
   return (
-    <div className="border rounded-lg overflow-hidden bg-white">
+    <div className="border rounded-lg overflow-hidden bg-white shadow-sm">
       {/* Toolbar */}
       <div className="border-b bg-gray-50 p-2">
         <div className="flex flex-wrap items-center gap-1">
@@ -134,7 +159,7 @@ export function RichTextEditor({ content, onChange, placeholder = "Start writing
           >
             <Bold className="h-4 w-4" />
           </ToolbarButton>
-          
+
           <ToolbarButton
             onClick={() => editor.chain().focus().toggleItalic().run()}
             isActive={editor.isActive('italic')}
@@ -142,7 +167,7 @@ export function RichTextEditor({ content, onChange, placeholder = "Start writing
           >
             <Italic className="h-4 w-4" />
           </ToolbarButton>
-          
+
           <ToolbarButton
             onClick={() => editor.chain().focus().toggleStrike().run()}
             isActive={editor.isActive('strike')}
@@ -150,7 +175,7 @@ export function RichTextEditor({ content, onChange, placeholder = "Start writing
           >
             <Strikethrough className="h-4 w-4" />
           </ToolbarButton>
-          
+
           <ToolbarButton
             onClick={() => editor.chain().focus().toggleCode().run()}
             isActive={editor.isActive('code')}
@@ -158,9 +183,9 @@ export function RichTextEditor({ content, onChange, placeholder = "Start writing
           >
             <Code className="h-4 w-4" />
           </ToolbarButton>
-          
+
           <Separator orientation="vertical" className="h-6 mx-1" />
-          
+
           {/* Headings */}
           <ToolbarButton
             onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
@@ -169,7 +194,7 @@ export function RichTextEditor({ content, onChange, placeholder = "Start writing
           >
             <Heading1 className="h-4 w-4" />
           </ToolbarButton>
-          
+
           <ToolbarButton
             onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
             isActive={editor.isActive('heading', { level: 2 })}
@@ -177,9 +202,9 @@ export function RichTextEditor({ content, onChange, placeholder = "Start writing
           >
             <Heading2 className="h-4 w-4" />
           </ToolbarButton>
-          
+
           <Separator orientation="vertical" className="h-6 mx-1" />
-          
+
           {/* Lists */}
           <ToolbarButton
             onClick={() => editor.chain().focus().toggleBulletList().run()}
@@ -188,7 +213,7 @@ export function RichTextEditor({ content, onChange, placeholder = "Start writing
           >
             <List className="h-4 w-4" />
           </ToolbarButton>
-          
+
           <ToolbarButton
             onClick={() => editor.chain().focus().toggleOrderedList().run()}
             isActive={editor.isActive('orderedList')}
@@ -196,7 +221,7 @@ export function RichTextEditor({ content, onChange, placeholder = "Start writing
           >
             <ListOrdered className="h-4 w-4" />
           </ToolbarButton>
-          
+
           <ToolbarButton
             onClick={() => editor.chain().focus().toggleBlockquote().run()}
             isActive={editor.isActive('blockquote')}
@@ -204,9 +229,9 @@ export function RichTextEditor({ content, onChange, placeholder = "Start writing
           >
             <Quote className="h-4 w-4" />
           </ToolbarButton>
-          
+
           <Separator orientation="vertical" className="h-6 mx-1" />
-          
+
           {/* Media */}
           <Dialog open={imageDialogOpen} onOpenChange={setImageDialogOpen}>
             <DialogTrigger asChild>
@@ -241,7 +266,7 @@ export function RichTextEditor({ content, onChange, placeholder = "Start writing
                 title="Insert Link"
                 className="h-8 w-8 p-0"
               >
-                <Link className="h-4 w-4" />
+                <LinkIcon className="h-4 w-4" />
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-md">
@@ -286,9 +311,9 @@ export function RichTextEditor({ content, onChange, placeholder = "Start writing
               </div>
             </DialogContent>
           </Dialog>
-          
+
           <Separator orientation="vertical" className="h-6 mx-1" />
-          
+
           {/* History */}
           <ToolbarButton
             onClick={() => editor.chain().focus().undo().run()}
@@ -297,7 +322,7 @@ export function RichTextEditor({ content, onChange, placeholder = "Start writing
           >
             <Undo className="h-4 w-4" />
           </ToolbarButton>
-          
+
           <ToolbarButton
             onClick={() => editor.chain().focus().redo().run()}
             disabled={!editor.can().redo()}
@@ -307,11 +332,11 @@ export function RichTextEditor({ content, onChange, placeholder = "Start writing
           </ToolbarButton>
         </div>
       </div>
-      
+
       {/* Editor */}
       <div className="min-h-[300px]">
-        <EditorContent 
-          editor={editor} 
+        <EditorContent
+          editor={editor}
           className="prose prose-sm max-w-none [&_.ProseMirror]:outline-none [&_.ProseMirror]:min-h-[300px] [&_.ProseMirror]:p-4 [&_.ProseMirror_img]:max-w-full [&_.ProseMirror_img]:h-auto [&_.ProseMirror_img]:rounded-lg"
         />
       </div>

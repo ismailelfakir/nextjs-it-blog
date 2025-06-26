@@ -12,54 +12,99 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { RichTextEditor } from '@/components/rich-text-editor';
-import { 
-  Shield, 
-  LogOut, 
+import {
+  Shield,
+  LogOut,
   ArrowLeft,
   Save,
   Eye,
   Loader2,
   X,
-  Plus
+  AlertCircle,
 } from 'lucide-react';
 import { signOut } from 'next-auth/react';
+import { toast } from 'sonner';
 
+// Form schema
 const postSchema = z.object({
   title: z.string().min(1, 'Title is required').max(200, 'Title must be less than 200 characters'),
-  slug: z.string().min(1, 'Slug is required').regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Slug must contain only lowercase letters, numbers, and hyphens'),
+  slug: z
+    .string()
+    .min(1, 'Slug is required')
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Slug must contain only lowercase letters, numbers, and hyphens'),
   content: z.string().min(1, 'Content is required'),
-  tags: z.array(z.string()).max(10, 'Cannot have more than 10 tags')
+  tags: z.array(z.string()).max(10, 'Cannot have more than 10 tags'),
 });
 
 type PostFormData = z.infer<typeof postSchema>;
 
-export default function NewPostPage() {
+// Interface matching models/Post.ts
+interface Post {
+  id: string;
+  title: string;
+  slug: string;
+  content: string;
+  tags: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface EditPostFormProps {
+  post: Post;
+}
+
+export default function EditPostForm({ post }: EditPostFormProps) {
   const { data: session, status } = useSession();
   const router = useRouter();
+
   const [loading, setLoading] = useState(false);
-  const [content, setContent] = useState('');
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [content, setContent] = useState(post.content);
   const [tagInput, setTagInput] = useState('');
-  const [tags, setTags] = useState<string[]>([]);
+  const [tags, setTags] = useState<string[]>(post.tags);
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [isFormDirty, setIsFormDirty] = useState(false);
 
   const {
     register,
     handleSubmit,
     setValue,
     watch,
-    formState: { errors }
+    formState: { errors, isDirty },
   } = useForm<PostFormData>({
     resolver: zodResolver(postSchema),
     defaultValues: {
-      title: '',
-      slug: '',
-      content: '',
-      tags: []
-    }
+      title: post.title,
+      slug: post.slug,
+      content: post.content,
+      tags: post.tags,
+    },
   });
 
   const watchedTitle = watch('title');
+  const watchedSlug = watch('slug');
 
+  // Track form dirty state
+  useEffect(() => {
+    setIsFormDirty(isDirty || content !== post.content || JSON.stringify(tags) !== JSON.stringify(post.tags));
+  }, [isDirty, content, tags, post.content, post.tags]);
+
+  // Simulate initial loading
+  useEffect(() => {
+    setInitialLoading(false);
+  }, []);
+
+  // Redirect if not authenticated
   useEffect(() => {
     if (status === 'loading') return;
     if (!session) {
@@ -69,74 +114,102 @@ export default function NewPostPage() {
 
   // Auto-generate slug from title
   useEffect(() => {
-    if (watchedTitle) {
+    if (watchedTitle && !watchedSlug) {
       const slug = watchedTitle
         .toLowerCase()
         .trim()
         .replace(/[^\w\s-]/g, '')
         .replace(/[\s_-]+/g, '-')
         .replace(/^-+|-+$/g, '');
-      setValue('slug', slug);
+      setValue('slug', slug, { shouldDirty: true });
     }
-  }, [watchedTitle, setValue]);
+  }, [watchedTitle, watchedSlug, setValue]);
 
-  // Update form content when rich text editor changes
+  // Sync rich text editor content
   useEffect(() => {
-    setValue('content', content);
+    setValue('content', content, { shouldDirty: true });
   }, [content, setValue]);
 
-  // Update form tags when tags array changes
+  // Sync tags
   useEffect(() => {
-    setValue('tags', tags);
+    setValue('tags', tags, { shouldDirty: true });
   }, [tags, setValue]);
 
+  // Handle tag addition with case-insensitive validation
   const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' || e.key === ',') {
       e.preventDefault();
       const tag = tagInput.trim().toLowerCase();
-      if (tag && !tags.includes(tag) && tags.length < 10) {
+      const tagExists = tags.some((existingTag) => existingTag.toLowerCase() === tag);
+      if (tag && !tagExists && tags.length < 10) {
         setTags([...tags, tag]);
         setTagInput('');
+      } else if (tagExists) {
+        toast.error('Tag already exists');
       }
     }
   };
 
+  // Handle tag removal
   const handleRemoveTag = (tagToRemove: string) => {
-    setTags(tags.filter(tag => tag !== tagToRemove));
+    setTags(tags.filter((tag) => tag !== tagToRemove));
   };
 
+  // Handle form submission
   const onSubmit = async (data: PostFormData) => {
     try {
       setLoading(true);
-      
-      const response = await fetch('/api/posts', {
-        method: 'POST',
+      const response = await fetch(`/api/posts/${post.id}`, {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${session?.accessToken || ''}`,
         },
         body: JSON.stringify(data),
       });
 
+      if (!response.ok) {
+        if (response.status === 401) {
+          toast.error('Unauthorized. Please sign in again.');
+          await signOut({ callbackUrl: '/admin/login' });
+          return;
+        }
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to update post');
+      }
+
       const result = await response.json();
 
       if (result.success) {
+        toast.success('Post updated successfully!');
         router.push('/admin/posts');
       } else {
-        alert(result.message || 'Failed to create post');
+        toast.error(result.message || 'Failed to update post');
       }
     } catch (error) {
-      console.error('Error creating post:', error);
-      alert('An error occurred while creating the post');
+      console.error('Error updating post:', error);
+      toast.error('An error occurred while updating the post');
     } finally {
       setLoading(false);
     }
   };
 
+  // Handle sign out
   const handleSignOut = async () => {
     await signOut({ callbackUrl: '/' });
   };
 
-  if (status === 'loading') {
+  // Handle cancel with confirmation
+  const handleCancel = () => {
+    if (isFormDirty) {
+      setCancelDialogOpen(true);
+    } else {
+      router.push('/admin/posts');
+    }
+  };
+
+  // Render loading state
+  if (status === 'loading' || initialLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex items-center justify-center">
         <div className="text-center">
@@ -147,6 +220,7 @@ export default function NewPostPage() {
     );
   }
 
+  // Redirect if not authenticated
   if (!session) {
     return null;
   }
@@ -163,15 +237,15 @@ export default function NewPostPage() {
               </div>
               <div>
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  Create New Post
+                  Edit Post
                 </h1>
-                <p className="text-sm text-muted-foreground">Write and publish a new blog post</p>
+                <p className="text-sm text-muted-foreground">Update your blog post</p>
               </div>
             </div>
             <div className="flex items-center space-x-4">
               <div className="text-right">
-                <p className="text-sm font-medium">{session.user.name}</p>
-                <p className="text-xs text-muted-foreground">{session.user.email}</p>
+                <p className="text-sm font-medium">{session.user?.name || 'Admin'}</p>
+                <p className="text-xs text-muted-foreground">{session.user?.email || ''}</p>
               </div>
               <Button
                 variant="outline"
@@ -189,11 +263,17 @@ export default function NewPostPage() {
       {/* Main Content */}
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Navigation */}
-        <div className="mb-6">
+        <div className="mb-6 flex items-center justify-between">
           <Link href="/admin/posts">
             <Button variant="ghost" className="hover:bg-blue-50 hover:text-blue-600">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Posts
+            </Button>
+          </Link>
+          <Link href={`/blog/${post.slug}`} target="_blank">
+            <Button variant="outline" size="sm">
+              <Eye className="w-4 h-4 mr-2" />
+              Preview
             </Button>
           </Link>
         </div>
@@ -203,7 +283,7 @@ export default function NewPostPage() {
           <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-sm">
             <CardHeader>
               <CardTitle>Post Details</CardTitle>
-              <CardDescription>Basic information about your blog post</CardDescription>
+              <CardDescription>Update the basic information about your blog post</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
@@ -214,9 +294,7 @@ export default function NewPostPage() {
                   placeholder="Enter post title"
                   className={errors.title ? 'border-red-500' : ''}
                 />
-                {errors.title && (
-                  <p className="text-sm text-red-600">{errors.title.message}</p>
-                )}
+                {errors.title && <p className="text-sm text-red-600">{errors.title.message}</p>}
               </div>
 
               <div className="space-y-2">
@@ -227,11 +305,9 @@ export default function NewPostPage() {
                   placeholder="post-url-slug"
                   className={errors.slug ? 'border-red-500' : ''}
                 />
-                {errors.slug && (
-                  <p className="text-sm text-red-600">{errors.slug.message}</p>
-                )}
+                {errors.slug && <p className="text-sm text-red-600">{errors.slug.message}</p>}
                 <p className="text-sm text-muted-foreground">
-                  This will be the URL path for your post. Auto-generated from title.
+                  This will be the URL path for your post. Be careful when changing this as it will break existing links.
                 </p>
               </div>
 
@@ -264,9 +340,7 @@ export default function NewPostPage() {
                     Add tags to help categorize your post. Press Enter or comma to add.
                   </p>
                 )}
-                {errors.tags && (
-                  <p className="text-sm text-red-600">{errors.tags.message}</p>
-                )}
+                {errors.tags && <p className="text-sm text-red-600">{errors.tags.message}</p>}
               </div>
             </CardContent>
           </Card>
@@ -275,7 +349,7 @@ export default function NewPostPage() {
           <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-sm">
             <CardHeader>
               <CardTitle>Content *</CardTitle>
-              <CardDescription>Write your blog post content using the rich text editor</CardDescription>
+              <CardDescription>Update your blog post content using the rich text editor</CardDescription>
             </CardHeader>
             <CardContent>
               {/* <RichTextEditor
@@ -283,33 +357,60 @@ export default function NewPostPage() {
                 onChange={setContent}
                 placeholder="Start writing your blog post..."
               /> */}
-              {errors.content && (
-                <p className="text-sm text-red-600 mt-2">{errors.content.message}</p>
-              )}
+              {errors.content && <p className="text-sm text-red-600 mt-2">{errors.content.message}</p>}
             </CardContent>
           </Card>
 
           {/* Actions */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-end">
-            <Link href="/admin/posts">
-              <Button type="button" variant="outline" className="w-full sm:w-auto">
-                Cancel
-              </Button>
-            </Link>
+          <div className="flex-col space-y-2 sm:flex sm:flex-row sm:gap-4 sm:space-y-0 justify-end">
+            <Dialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full sm:w-auto"
+                  onClick={() => isFormDirty && setCancelDialogOpen(true)}
+                >
+                  Cancel
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Discard Changes?</DialogTitle>
+                  <DialogDescription>
+                    You have unsaved changes. Are you sure you want to cancel and discard them?
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                  <Button
+                    variant="outline"
+                    onClick={() => setCancelDialogOpen(false)}
+                  >
+                    Stay
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={() => router.push('/admin/posts')}
+                  >
+                    Discard
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
             <Button
               type="submit"
               disabled={loading}
-              className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+              className="w-full sm:w-auto rounded-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
             >
               {loading ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Creating...
+                  Updating...
                 </>
               ) : (
                 <>
                   <Save className="w-4 h-4 mr-2" />
-                  Create Post
+                  Update Post
                 </>
               )}
             </Button>
