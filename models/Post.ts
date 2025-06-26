@@ -42,8 +42,8 @@ const PostSchema: Schema<IPost> = new Schema(
       type: [String],
       default: [],
       validate: {
-        validator: function (tags: string[]) {
-          return tags.length <= 10;
+        validator: function (tags: string[] = []) {
+          return Array.isArray(tags) && tags.length <= 10;
         },
         message: 'Cannot have more than 10 tags',
       },
@@ -56,21 +56,19 @@ const PostSchema: Schema<IPost> = new Schema(
         ret.id = ret._id.toString();
         delete ret._id;
         delete ret.__v;
-        ret.createdAt = ret.createdAt.toISOString();
-        ret.updatedAt = ret.updatedAt.toISOString();
+        ret.createdAt = new Date(ret.createdAt).toISOString();
+        ret.updatedAt = new Date(ret.updatedAt).toISOString();
         return ret;
       },
     },
   }
 );
 
-// ✅ Cleaned up indexes
-PostSchema.index({ slug: 1 }, { unique: true }); // single definition
-PostSchema.index({ tags: 1 });
-PostSchema.index({ createdAt: -1 });
-
-// Normalize slug before saving
+// Ensure tags is always an array before saving
 PostSchema.pre<IPost>('save', function (next) {
+  if (!Array.isArray(this.tags)) {
+    this.tags = [];
+  }
   if (this.isModified('slug')) {
     this.slug = this.slug
       .toLowerCase()
@@ -99,5 +97,10 @@ PostSchema.methods.removeTag = function (tag: string) {
   this.tags = this.tags.filter((t: string) => t !== tag);
   return this.save();
 };
+
+// Indexes
+PostSchema.index({ slug: 1 }, { unique: true });
+PostSchema.index({ tags: 1 });
+PostSchema.index({ createdAt: -1 });
 
 export default (mongoose.models.Post as IPostModel) || mongoose.model<IPost, IPostModel>('Post', PostSchema);

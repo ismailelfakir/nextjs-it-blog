@@ -1,35 +1,51 @@
-'use client';
+"use client";
 
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import Link from 'next/link';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { RichTextEditor } from '@/components/rich-text-editor';
-import { 
-  Shield, 
-  LogOut, 
+import dynamic from "next/dynamic";
+import "react-quill/dist/quill.snow.css";
+const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
+
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import Link from "next/link";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import {
+  Shield,
+  LogOut,
   ArrowLeft,
   Save,
-  Eye,
   Loader2,
   X,
-  Plus
-} from 'lucide-react';
-import { signOut } from 'next-auth/react';
+} from "lucide-react";
+import { signOut } from "next-auth/react";
 
 const postSchema = z.object({
-  title: z.string().min(1, 'Title is required').max(200, 'Title must be less than 200 characters'),
-  slug: z.string().min(1, 'Slug is required').regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Slug must contain only lowercase letters, numbers, and hyphens'),
-  content: z.string().min(1, 'Content is required'),
-  tags: z.array(z.string()).max(10, 'Cannot have more than 10 tags')
+  title: z
+    .string()
+    .min(1, "Title is required")
+    .max(200, "Title must be less than 200 characters"),
+  slug: z
+    .string()
+    .min(1, "Slug is required")
+    .regex(
+      /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
+      "Slug must contain only lowercase letters, numbers, and hyphens"
+    ),
+  content: z.string().min(1, "Content is required"),
+  tags: z.array(z.string()).max(10, "Cannot have more than 10 tags"),
 });
 
 type PostFormData = z.infer<typeof postSchema>;
@@ -38,8 +54,8 @@ export default function NewPostPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [content, setContent] = useState('');
-  const [tagInput, setTagInput] = useState('');
+  const [content, setContent] = useState("");
+  const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState<string[]>([]);
 
   const {
@@ -47,96 +63,96 @@ export default function NewPostPage() {
     handleSubmit,
     setValue,
     watch,
-    formState: { errors }
+    formState: { errors },
   } = useForm<PostFormData>({
     resolver: zodResolver(postSchema),
     defaultValues: {
-      title: '',
-      slug: '',
-      content: '',
-      tags: []
-    }
+      title: "",
+      slug: "",
+      content: "",
+      tags: [],
+    },
   });
 
-  const watchedTitle = watch('title');
+  const watchedTitle = watch("title");
 
   useEffect(() => {
-    if (status === 'loading') return;
+    if (status === "loading") return;
     if (!session) {
-      router.push('/admin/login');
+      router.push("/admin/login");
     }
   }, [session, status, router]);
 
-  // Auto-generate slug from title
   useEffect(() => {
     if (watchedTitle) {
       const slug = watchedTitle
         .toLowerCase()
         .trim()
-        .replace(/[^\w\s-]/g, '')
-        .replace(/[\s_-]+/g, '-')
-        .replace(/^-+|-+$/g, '');
-      setValue('slug', slug);
+        .replace(/[^\w\s-]/g, "")
+        .replace(/[\s_-]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+      setValue("slug", slug);
     }
   }, [watchedTitle, setValue]);
 
-  // Update form content when rich text editor changes
   useEffect(() => {
-    setValue('content', content);
+    setValue("content", content);
   }, [content, setValue]);
 
-  // Update form tags when tags array changes
   useEffect(() => {
-    setValue('tags', tags);
+    setValue("tags", tags);
   }, [tags, setValue]);
 
   const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' || e.key === ',') {
+    if (e.key === "Enter" || e.key === ",") {
       e.preventDefault();
       const tag = tagInput.trim().toLowerCase();
       if (tag && !tags.includes(tag) && tags.length < 10) {
         setTags([...tags, tag]);
-        setTagInput('');
+        setTagInput("");
       }
     }
   };
 
   const handleRemoveTag = (tagToRemove: string) => {
-    setTags(tags.filter(tag => tag !== tagToRemove));
+    setTags(tags.filter((tag) => tag !== tagToRemove));
   };
 
   const onSubmit = async (data: PostFormData) => {
     try {
       setLoading(true);
-      
-      const response = await fetch('/api/posts', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
+
+      const finalData = {
+        ...data,
+        tags,
+      };
+
+      const response = await fetch("/api/posts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(finalData),
       });
 
       const result = await response.json();
 
       if (result.success) {
-        router.push('/admin/posts');
+        router.push("/admin/posts");
       } else {
-        alert(result.message || 'Failed to create post');
+        alert(result.message || "Failed to create post");
       }
     } catch (error) {
-      console.error('Error creating post:', error);
-      alert('An error occurred while creating the post');
+      console.error("Error creating post:", error);
+      alert("An error occurred while creating the post");
     } finally {
       setLoading(false);
     }
   };
 
   const handleSignOut = async () => {
-    await signOut({ callbackUrl: '/' });
+    await signOut({ callbackUrl: "/" });
   };
 
-  if (status === 'loading') {
+  if (status === "loading") {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex items-center justify-center">
         <div className="text-center">
@@ -147,9 +163,7 @@ export default function NewPostPage() {
     );
   }
 
-  if (!session) {
-    return null;
-  }
+  if (!session) return null;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
@@ -165,13 +179,17 @@ export default function NewPostPage() {
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                   Create New Post
                 </h1>
-                <p className="text-sm text-muted-foreground">Write and publish a new blog post</p>
+                <p className="text-sm text-muted-foreground">
+                  Write and publish a new blog post
+                </p>
               </div>
             </div>
             <div className="flex items-center space-x-4">
               <div className="text-right">
                 <p className="text-sm font-medium">{session.user.name}</p>
-                <p className="text-xs text-muted-foreground">{session.user.email}</p>
+                <p className="text-xs text-muted-foreground">
+                  {session.user.email}
+                </p>
               </div>
               <Button
                 variant="outline"
@@ -191,7 +209,10 @@ export default function NewPostPage() {
         {/* Navigation */}
         <div className="mb-6">
           <Link href="/admin/posts">
-            <Button variant="ghost" className="hover:bg-blue-50 hover:text-blue-600">
+            <Button
+              variant="ghost"
+              className="hover:bg-blue-50 hover:text-blue-600"
+            >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Posts
             </Button>
@@ -203,16 +224,18 @@ export default function NewPostPage() {
           <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-sm">
             <CardHeader>
               <CardTitle>Post Details</CardTitle>
-              <CardDescription>Basic information about your blog post</CardDescription>
+              <CardDescription>
+                Basic information about your blog post
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="title">Title *</Label>
                 <Input
                   id="title"
-                  {...register('title')}
+                  {...register("title")}
                   placeholder="Enter post title"
-                  className={errors.title ? 'border-red-500' : ''}
+                  className={errors.title ? "border-red-500" : ""}
                 />
                 {errors.title && (
                   <p className="text-sm text-red-600">{errors.title.message}</p>
@@ -223,15 +246,16 @@ export default function NewPostPage() {
                 <Label htmlFor="slug">Slug *</Label>
                 <Input
                   id="slug"
-                  {...register('slug')}
+                  {...register("slug")}
                   placeholder="post-url-slug"
-                  className={errors.slug ? 'border-red-500' : ''}
+                  className={errors.slug ? "border-red-500" : ""}
                 />
                 {errors.slug && (
                   <p className="text-sm text-red-600">{errors.slug.message}</p>
                 )}
                 <p className="text-sm text-muted-foreground">
-                  This will be the URL path for your post. Auto-generated from title.
+                  This will be the URL path for your post. Auto-generated from
+                  title.
                 </p>
               </div>
 
@@ -247,7 +271,11 @@ export default function NewPostPage() {
                 />
                 <div className="flex flex-wrap gap-2">
                   {tags.map((tag, index) => (
-                    <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                    <Badge
+                      key={index}
+                      variant="secondary"
+                      className="flex items-center gap-1"
+                    >
                       {tag}
                       <button
                         type="button"
@@ -261,7 +289,8 @@ export default function NewPostPage() {
                 </div>
                 {tags.length === 0 && (
                   <p className="text-sm text-muted-foreground">
-                    Add tags to help categorize your post. Press Enter or comma to add.
+                    Add tags to help categorize your post. Press Enter or comma
+                    to add.
                   </p>
                 )}
                 {errors.tags && (
@@ -275,16 +304,21 @@ export default function NewPostPage() {
           <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-sm">
             <CardHeader>
               <CardTitle>Content *</CardTitle>
-              <CardDescription>Write your blog post content using the rich text editor</CardDescription>
+              <CardDescription>
+                Write your blog post content using the rich text editor
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              {/* <RichTextEditor
-                content={content}
+              <ReactQuill
+                value={content}
                 onChange={setContent}
                 placeholder="Start writing your blog post..."
-              /> */}
+                theme="snow"
+              />
               {errors.content && (
-                <p className="text-sm text-red-600 mt-2">{errors.content.message}</p>
+                <p className="text-sm text-red-600 mt-2">
+                  {errors.content.message}
+                </p>
               )}
             </CardContent>
           </Card>
@@ -292,7 +326,11 @@ export default function NewPostPage() {
           {/* Actions */}
           <div className="flex flex-col sm:flex-row gap-4 justify-end">
             <Link href="/admin/posts">
-              <Button type="button" variant="outline" className="w-full sm:w-auto">
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full sm:w-auto"
+              >
                 Cancel
               </Button>
             </Link>

@@ -27,17 +27,15 @@ export async function GET(request: NextRequest) {
       ];
     }
 
-    // Calculate pagination
+    // Pagination
     const skip = (page - 1) * limit;
 
-    // Execute query with pagination
     const posts = await Post.find(query)
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
       .lean();
 
-    // Get total count for pagination
     const total = await Post.countDocuments(query);
     const totalPages = Math.ceil(total / limit);
 
@@ -87,7 +85,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if slug already exists
+    // Check for duplicate slug
     const existingPost = await Post.findOne({ slug });
     if (existingPost) {
       return NextResponse.json(
@@ -100,12 +98,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create new post
+    // Validate tags as array of strings
+    const validTags = Array.isArray(tags) && tags.every(tag => typeof tag === 'string')
+      ? tags
+      : [];
+
+    // Create post
     const post = new Post({
       title,
       slug,
       content,
-      tags: tags || []
+      tags: validTags
     });
 
     const savedPost = await post.save();
@@ -122,7 +125,6 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('POST /api/posts error:', error);
 
-    // Handle validation errors
     if (error.name === 'ValidationError') {
       const validationErrors = Object.values(error.errors).map((err: any) => err.message);
       return NextResponse.json(
@@ -135,7 +137,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Handle duplicate key error
     if (error.code === 11000) {
       return NextResponse.json(
         {

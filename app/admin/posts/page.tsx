@@ -25,6 +25,7 @@ import {
 import { signOut } from 'next-auth/react';
 
 interface Post {
+  _id?: string; // optional for fallback
   id: string;
   title: string;
   slug: string;
@@ -75,7 +76,7 @@ export default function AdminPostsPage() {
         page: page.toString(),
         limit: '10'
       });
-      
+
       if (search) params.append('search', search);
       if (tag) params.append('tag', tag);
 
@@ -83,12 +84,15 @@ export default function AdminPostsPage() {
       const data: ApiResponse = await response.json();
 
       if (data.success) {
-        setPosts(data.data);
+        const cleanedData = data.data.map((post) => ({
+          ...post,
+          id: post.id || post._id || '',
+        }));
+        setPosts(cleanedData);
         setPagination(data.pagination);
-        
-        // Extract unique tags from all posts
+
         const tags = new Set<string>();
-        data.data.forEach(post => {
+        cleanedData.forEach(post => {
           post.tags.forEach(tag => tags.add(tag));
         });
         setAllTags(Array.from(tags));
@@ -113,7 +117,6 @@ export default function AdminPostsPage() {
 
       if (response.ok) {
         setPosts(posts.filter(post => post.id !== postId));
-        // Refresh the current page if it becomes empty
         if (posts.length === 1 && currentPage > 1) {
           setCurrentPage(currentPage - 1);
         } else {
@@ -169,9 +172,8 @@ export default function AdminPostsPage() {
     );
   }
 
-  if (!session) {
-    return null;
-  }
+  if (!session) return null;
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">

@@ -1,17 +1,27 @@
-'use client';
+"use client";
 
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import Link from 'next/link';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
+import dynamic from "next/dynamic";
+import "react-quill/dist/quill.snow.css";
+const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
+
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import Link from "next/link";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -20,8 +30,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
-import { RichTextEditor } from '@/components/rich-text-editor';
+} from "@/components/ui/dialog";
 import {
   Shield,
   LogOut,
@@ -31,19 +40,25 @@ import {
   Loader2,
   X,
   AlertCircle,
-} from 'lucide-react';
-import { signOut } from 'next-auth/react';
-import { toast } from 'sonner';
+} from "lucide-react";
+import { signOut } from "next-auth/react";
+import { toast } from "sonner";
 
 // Form schema
 const postSchema = z.object({
-  title: z.string().min(1, 'Title is required').max(200, 'Title must be less than 200 characters'),
+  title: z
+    .string()
+    .min(1, "Title is required")
+    .max(200, "Title must be less than 200 characters"),
   slug: z
     .string()
-    .min(1, 'Slug is required')
-    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Slug must contain only lowercase letters, numbers, and hyphens'),
-  content: z.string().min(1, 'Content is required'),
-  tags: z.array(z.string()).max(10, 'Cannot have more than 10 tags'),
+    .min(1, "Slug is required")
+    .regex(
+      /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
+      "Slug must contain only lowercase letters, numbers, and hyphens"
+    ),
+  content: z.string().min(1, "Content is required"),
+  tags: z.array(z.string()).max(10, "Cannot have more than 10 tags"),
 });
 
 type PostFormData = z.infer<typeof postSchema>;
@@ -70,7 +85,7 @@ export default function EditPostForm({ post }: EditPostFormProps) {
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [content, setContent] = useState(post.content);
-  const [tagInput, setTagInput] = useState('');
+  const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState<string[]>(post.tags);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [isFormDirty, setIsFormDirty] = useState(false);
@@ -91,12 +106,16 @@ export default function EditPostForm({ post }: EditPostFormProps) {
     },
   });
 
-  const watchedTitle = watch('title');
-  const watchedSlug = watch('slug');
+  const watchedTitle = watch("title");
+  const watchedSlug = watch("slug");
 
   // Track form dirty state
   useEffect(() => {
-    setIsFormDirty(isDirty || content !== post.content || JSON.stringify(tags) !== JSON.stringify(post.tags));
+    setIsFormDirty(
+      isDirty ||
+        content !== post.content ||
+        JSON.stringify(tags) !== JSON.stringify(post.tags)
+    );
   }, [isDirty, content, tags, post.content, post.tags]);
 
   // Simulate initial loading
@@ -106,9 +125,9 @@ export default function EditPostForm({ post }: EditPostFormProps) {
 
   // Redirect if not authenticated
   useEffect(() => {
-    if (status === 'loading') return;
+    if (status === "loading") return;
     if (!session) {
-      router.push('/admin/login');
+      router.push("/admin/login");
     }
   }, [session, status, router]);
 
@@ -118,34 +137,36 @@ export default function EditPostForm({ post }: EditPostFormProps) {
       const slug = watchedTitle
         .toLowerCase()
         .trim()
-        .replace(/[^\w\s-]/g, '')
-        .replace(/[\s_-]+/g, '-')
-        .replace(/^-+|-+$/g, '');
-      setValue('slug', slug, { shouldDirty: true });
+        .replace(/[^\w\s-]/g, "")
+        .replace(/[\s_-]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+      setValue("slug", slug, { shouldDirty: true });
     }
   }, [watchedTitle, watchedSlug, setValue]);
 
   // Sync rich text editor content
   useEffect(() => {
-    setValue('content', content, { shouldDirty: true });
+    setValue("content", content, { shouldDirty: true });
   }, [content, setValue]);
 
   // Sync tags
   useEffect(() => {
-    setValue('tags', tags, { shouldDirty: true });
+    setValue("tags", tags, { shouldDirty: true });
   }, [tags, setValue]);
 
   // Handle tag addition with case-insensitive validation
   const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' || e.key === ',') {
+    if (e.key === "Enter" || e.key === ",") {
       e.preventDefault();
       const tag = tagInput.trim().toLowerCase();
-      const tagExists = tags.some((existingTag) => existingTag.toLowerCase() === tag);
+      const tagExists = tags.some(
+        (existingTag) => existingTag.toLowerCase() === tag
+      );
       if (tag && !tagExists && tags.length < 10) {
         setTags([...tags, tag]);
-        setTagInput('');
+        setTagInput("");
       } else if (tagExists) {
-        toast.error('Tag already exists');
+        toast.error("Tag already exists");
       }
     }
   };
@@ -157,38 +178,33 @@ export default function EditPostForm({ post }: EditPostFormProps) {
 
   // Handle form submission
   const onSubmit = async (data: PostFormData) => {
+    const finalData = {
+      ...data,
+      tags, // override the form's stale tags with your state
+    };
+
     try {
       setLoading(true);
-      const response = await fetch(`/api/posts/${post.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session?.accessToken || ''}`,
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          toast.error('Unauthorized. Please sign in again.');
-          await signOut({ callbackUrl: '/admin/login' });
-          return;
+      const response = await fetch(
+        post ? `/api/posts/${post.id}` : "/api/posts",
+        {
+          method: post ? "PUT" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(finalData),
         }
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to update post');
-      }
+      );
 
       const result = await response.json();
 
       if (result.success) {
-        toast.success('Post updated successfully!');
-        router.push('/admin/posts');
+        toast?.success?.("Post saved successfully!");
+        router.push("/admin/posts");
       } else {
-        toast.error(result.message || 'Failed to update post');
+        toast?.error?.(result.message || "Failed to save post");
       }
     } catch (error) {
-      console.error('Error updating post:', error);
-      toast.error('An error occurred while updating the post');
+      console.error("Error saving post:", error);
+      toast?.error?.("An error occurred while saving the post");
     } finally {
       setLoading(false);
     }
@@ -196,7 +212,7 @@ export default function EditPostForm({ post }: EditPostFormProps) {
 
   // Handle sign out
   const handleSignOut = async () => {
-    await signOut({ callbackUrl: '/' });
+    await signOut({ callbackUrl: "/" });
   };
 
   // Handle cancel with confirmation
@@ -204,12 +220,12 @@ export default function EditPostForm({ post }: EditPostFormProps) {
     if (isFormDirty) {
       setCancelDialogOpen(true);
     } else {
-      router.push('/admin/posts');
+      router.push("/admin/posts");
     }
   };
 
   // Render loading state
-  if (status === 'loading' || initialLoading) {
+  if (status === "loading" || initialLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex items-center justify-center">
         <div className="text-center">
@@ -239,13 +255,19 @@ export default function EditPostForm({ post }: EditPostFormProps) {
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                   Edit Post
                 </h1>
-                <p className="text-sm text-muted-foreground">Update your blog post</p>
+                <p className="text-sm text-muted-foreground">
+                  Update your blog post
+                </p>
               </div>
             </div>
             <div className="flex items-center space-x-4">
               <div className="text-right">
-                <p className="text-sm font-medium">{session.user?.name || 'Admin'}</p>
-                <p className="text-xs text-muted-foreground">{session.user?.email || ''}</p>
+                <p className="text-sm font-medium">
+                  {session.user?.name || "Admin"}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {session.user?.email || ""}
+                </p>
               </div>
               <Button
                 variant="outline"
@@ -265,7 +287,10 @@ export default function EditPostForm({ post }: EditPostFormProps) {
         {/* Navigation */}
         <div className="mb-6 flex items-center justify-between">
           <Link href="/admin/posts">
-            <Button variant="ghost" className="hover:bg-blue-50 hover:text-blue-600">
+            <Button
+              variant="ghost"
+              className="hover:bg-blue-50 hover:text-blue-600"
+            >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Posts
             </Button>
@@ -283,31 +308,38 @@ export default function EditPostForm({ post }: EditPostFormProps) {
           <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-sm">
             <CardHeader>
               <CardTitle>Post Details</CardTitle>
-              <CardDescription>Update the basic information about your blog post</CardDescription>
+              <CardDescription>
+                Update the basic information about your blog post
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="title">Title *</Label>
                 <Input
                   id="title"
-                  {...register('title')}
+                  {...register("title")}
                   placeholder="Enter post title"
-                  className={errors.title ? 'border-red-500' : ''}
+                  className={errors.title ? "border-red-500" : ""}
                 />
-                {errors.title && <p className="text-sm text-red-600">{errors.title.message}</p>}
+                {errors.title && (
+                  <p className="text-sm text-red-600">{errors.title.message}</p>
+                )}
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="slug">Slug *</Label>
                 <Input
                   id="slug"
-                  {...register('slug')}
+                  {...register("slug")}
                   placeholder="post-url-slug"
-                  className={errors.slug ? 'border-red-500' : ''}
+                  className={errors.slug ? "border-red-500" : ""}
                 />
-                {errors.slug && <p className="text-sm text-red-600">{errors.slug.message}</p>}
+                {errors.slug && (
+                  <p className="text-sm text-red-600">{errors.slug.message}</p>
+                )}
                 <p className="text-sm text-muted-foreground">
-                  This will be the URL path for your post. Be careful when changing this as it will break existing links.
+                  This will be the URL path for your post. Be careful when
+                  changing this as it will break existing links.
                 </p>
               </div>
 
@@ -323,7 +355,11 @@ export default function EditPostForm({ post }: EditPostFormProps) {
                 />
                 <div className="flex flex-wrap gap-2">
                   {tags.map((tag, index) => (
-                    <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                    <Badge
+                      key={index}
+                      variant="secondary"
+                      className="flex items-center gap-1"
+                    >
                       {tag}
                       <button
                         type="button"
@@ -337,10 +373,13 @@ export default function EditPostForm({ post }: EditPostFormProps) {
                 </div>
                 {tags.length === 0 && (
                   <p className="text-sm text-muted-foreground">
-                    Add tags to help categorize your post. Press Enter or comma to add.
+                    Add tags to help categorize your post. Press Enter or comma
+                    to add.
                   </p>
                 )}
-                {errors.tags && <p className="text-sm text-red-600">{errors.tags.message}</p>}
+                {errors.tags && (
+                  <p className="text-sm text-red-600">{errors.tags.message}</p>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -349,15 +388,22 @@ export default function EditPostForm({ post }: EditPostFormProps) {
           <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-sm">
             <CardHeader>
               <CardTitle>Content *</CardTitle>
-              <CardDescription>Update your blog post content using the rich text editor</CardDescription>
+              <CardDescription>
+                Update your blog post content using the rich text editor
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              {/* <RichTextEditor
-                content={content}
+              <ReactQuill
+                value={content}
                 onChange={setContent}
                 placeholder="Start writing your blog post..."
-              /> */}
-              {errors.content && <p className="text-sm text-red-600 mt-2">{errors.content.message}</p>}
+                theme="snow"
+              />
+              {errors.content && (
+                <p className="text-sm text-red-600 mt-2">
+                  {errors.content.message}
+                </p>
+              )}
             </CardContent>
           </Card>
 
@@ -378,7 +424,8 @@ export default function EditPostForm({ post }: EditPostFormProps) {
                 <DialogHeader>
                   <DialogTitle>Discard Changes?</DialogTitle>
                   <DialogDescription>
-                    You have unsaved changes. Are you sure you want to cancel and discard them?
+                    You have unsaved changes. Are you sure you want to cancel
+                    and discard them?
                   </DialogDescription>
                 </DialogHeader>
                 <DialogFooter>
@@ -390,7 +437,7 @@ export default function EditPostForm({ post }: EditPostFormProps) {
                   </Button>
                   <Button
                     variant="destructive"
-                    onClick={() => router.push('/admin/posts')}
+                    onClick={() => router.push("/admin/posts")}
                   >
                     Discard
                   </Button>
