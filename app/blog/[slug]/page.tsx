@@ -1,20 +1,13 @@
-import { Metadata } from 'next';
-import { notFound } from 'next/navigation';
-import { Header } from '@/components/header';
-import Link from 'next/link';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { ShareButton } from '@/components/share-button';
-import { 
-  Calendar, 
-  User, 
-  Clock,
-  ArrowLeft,
-  BookOpen,
-  Tag
-} from 'lucide-react';
-import { generateBlogPostMetadata } from '@/lib/seo-utils';
+import { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { Header } from "@/components/header";
+import Link from "next/link";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { ShareButton } from "@/components/share-button";
+import { Calendar, User, Clock, ArrowLeft, BookOpen, Tag } from "lucide-react";
+import { generateBlogPostMetadata } from "@/lib/seo-utils";
 
 interface Post {
   id: string;
@@ -22,6 +15,7 @@ interface Post {
   slug: string;
   content: string;
   tags: string[];
+  author?: string; // ✅ optional field
   createdAt: string;
   updatedAt: string;
 }
@@ -32,30 +26,32 @@ interface BlogPostPageProps {
 
 async function getPost(slug: string): Promise<Post | null> {
   try {
-    const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+    const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
     const response = await fetch(`${baseUrl}/api/posts/slug/${slug}`, {
-      cache: 'no-store'
+      cache: "no-store",
     });
-    
+
     if (!response.ok) {
       return null;
     }
-    
+
     const data = await response.json();
     return data.success ? data.data : null;
   } catch (error) {
-    console.error('Error fetching post:', error);
+    console.error("Error fetching post:", error);
     return null;
   }
 }
 
-export async function generateMetadata({ params }: BlogPostPageProps): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: BlogPostPageProps): Promise<Metadata> {
   const post = await getPost(params.slug);
-  
+
   if (!post) {
     return {
-      title: 'Post Not Found - TechInsights',
-      description: 'The requested blog post could not be found.',
+      title: "Post Not Found - TechInsights",
+      description: "The requested blog post could not be found.",
     };
   }
 
@@ -71,10 +67,10 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   };
 
@@ -89,27 +85,29 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "Article",
-    "headline": post.title,
-    "description": post.content.replace(/<[^>]*>/g, '').substring(0, 160),
-    "author": {
+    headline: post.title,
+    description: post.content.replace(/<[^>]*>/g, "").substring(0, 160),
+    author: {
       "@type": "Person",
-      "name": "Admin"
+      name: post.author || "EL FAKIR Ismail",
     },
-    "publisher": {
+    publisher: {
       "@type": "Organization",
-      "name": "TechInsights",
-      "logo": {
+      name: "TechInsights",
+      logo: {
         "@type": "ImageObject",
-        "url": `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/logo.png`
-      }
+        url: `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/logo.png`,
+      },
     },
-    "datePublished": post.createdAt,
-    "dateModified": post.updatedAt,
-    "mainEntityOfPage": {
+    datePublished: post.createdAt,
+    dateModified: post.updatedAt,
+    mainEntityOfPage: {
       "@type": "WebPage",
-      "@id": `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/blog/${post.slug}`
+      "@id": `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/blog/${
+        post.slug
+      }`,
     },
-    "keywords": post.tags.join(', ')
+    keywords: post.tags.join(", "),
   };
 
   return (
@@ -118,7 +116,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
-      
+
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
         <Header />
 
@@ -126,7 +124,10 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         <section className="py-6">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <Link href="/blog">
-              <Button variant="ghost" className="hover:bg-blue-50 hover:text-blue-600">
+              <Button
+                variant="ghost"
+                className="hover:bg-blue-50 hover:text-blue-600"
+              >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to Articles
               </Button>
@@ -143,22 +144,26 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                 <header className="mb-8">
                   <div className="flex flex-wrap gap-2 mb-4">
                     {post.tags.map((tag, index) => (
-                      <Badge key={index} variant="secondary" className="text-xs">
+                      <Badge
+                        key={index}
+                        variant="secondary"
+                        className="text-xs"
+                      >
                         <Tag className="w-3 h-3 mr-1" />
                         {tag}
                       </Badge>
                     ))}
                   </div>
-                  
+
                   <h1 className="text-3xl lg:text-4xl font-bold text-foreground mb-6 leading-tight">
                     {post.title}
                   </h1>
-                  
+
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b">
                     <div className="flex items-center space-x-6 text-sm text-muted-foreground">
                       <div className="flex items-center">
                         <User className="w-4 h-4 mr-2" />
-                        Admin
+                        {post.author || "EL FAKIR Ismail"}
                       </div>
                       <div className="flex items-center">
                         <Calendar className="w-4 h-4 mr-2" />
@@ -169,21 +174,21 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                         {getReadingTime(post.content)}
                       </div>
                     </div>
-                    
+
                     <ShareButton title={post.title} />
                   </div>
                 </header>
 
                 {/* Article Body */}
                 <div className="prose prose-lg max-w-none">
-                  <div 
+                  <div
                     className="text-foreground leading-relaxed"
                     style={{
-                      lineHeight: '1.8',
-                      fontSize: '1.1rem'
+                      lineHeight: "1.8",
+                      fontSize: "1.1rem",
                     }}
-                    dangerouslySetInnerHTML={{ 
-                      __html: post.content.replace(/\n/g, '<br />') 
+                    dangerouslySetInnerHTML={{
+                      __html: post.content.replace(/\n/g, "<br />"),
                     }}
                   />
                 </div>
@@ -194,7 +199,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                     <div className="text-sm text-muted-foreground">
                       Last updated: {formatDate(post.updatedAt)}
                     </div>
-                    
+
                     <div className="flex items-center space-x-4">
                       <ShareButton title={post.title} />
                     </div>

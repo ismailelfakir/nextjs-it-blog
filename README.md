@@ -1019,7 +1019,7 @@ SOFTWARE.
 ✅ **Production Ready** - Comprehensive error handling, security, and monitoring  
 ✅ **Modern Stack** - Next.js 13+, MongoDB, Tailwind CSS, shadcn/ui
 
-**Built with ❤️ for the developer community**
+**Built with ismail for the developer community**
 
 For more information, visit our [website](https://techinsights.dev) or follow us on [Twitter](https://twitter.com/techinsights).
 

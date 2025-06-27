@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
-import connectDB from '@/lib/db';
-import Post from '@/models/Post';
+import { NextRequest, NextResponse } from "next/server";
+import connectDB from "@/lib/db";
+import Post from "@/models/Post";
 
 // GET /api/posts - Fetch all posts
 export async function GET(request: NextRequest) {
@@ -8,22 +8,20 @@ export async function GET(request: NextRequest) {
     await connectDB();
 
     const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '10');
-    const tag = searchParams.get('tag');
-    const search = searchParams.get('search');
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "10");
+    const tag = searchParams.get("tag");
+    const search = searchParams.get("search");
 
     // Build query
     let query: any = {};
-    
     if (tag) {
       query.tags = { $in: [tag] };
     }
-    
     if (search) {
       query.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { content: { $regex: search, $options: 'i' } }
+        { title: { $regex: search, $options: "i" } },
+        { content: { $regex: search, $options: "i" } },
       ];
     }
 
@@ -48,90 +46,99 @@ export async function GET(request: NextRequest) {
         total,
         totalPages,
         hasNext: page < totalPages,
-        hasPrev: page > 1
-      }
+        hasPrev: page > 1,
+      },
     });
-
   } catch (error: any) {
-    console.error('GET /api/posts error:', error);
+    console.error("GET /api/posts error:", error);
     return NextResponse.json(
       {
         success: false,
-        error: 'Failed to fetch posts',
-        message: error.message
+        error: "Failed to fetch posts",
+        message: error.message,
       },
       { status: 500 }
     );
   }
 }
 
-// POST /api/posts - Create a new post
+// POST /api/posts - Create one or multiple posts
 export async function POST(request: NextRequest) {
   try {
     await connectDB();
 
     const body = await request.json();
-    const { title, slug, content, tags } = body;
+    const posts = Array.isArray(body) ? body : [body]; // Support bulk or single
 
-    // Validate required fields
-    if (!title || !slug || !content) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Missing required fields',
-          message: 'Title, slug, and content are required'
-        },
-        { status: 400 }
-      );
+    const results = [];
+
+    for (const postData of posts) {
+      const { title, slug, content, tags } = postData;
+
+      // Validate required fields
+      if (!title || !slug || !content) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Missing required fields",
+            message: "Each post must include title, slug, and content",
+          },
+          { status: 400 }
+        );
+      }
+
+      // Check for duplicate slug
+      const existingPost = await Post.findOne({ slug });
+      if (existingPost) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Duplicate slug",
+            message: `A post with the slug "${slug}" already exists`,
+          },
+          { status: 409 }
+        );
+      }
+
+      // Validate tags
+      const validTags =
+        Array.isArray(tags) && tags.every((t) => typeof t === "string")
+          ? tags
+          : [];
+
+      // Create post
+      const post = new Post({
+        title,
+        slug,
+        content,
+        tags: validTags,
+        author: "EL FAKIR Ismail", // ✅ always your name for now
+      });
+
+      const savedPost = await post.save();
+      results.push(savedPost);
     }
-
-    // Check for duplicate slug
-    const existingPost = await Post.findOne({ slug });
-    if (existingPost) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Slug already exists',
-          message: 'A post with this slug already exists'
-        },
-        { status: 409 }
-      );
-    }
-
-    // Validate tags as array of strings
-    const validTags = Array.isArray(tags) && tags.every(tag => typeof tag === 'string')
-      ? tags
-      : [];
-
-    // Create post
-    const post = new Post({
-      title,
-      slug,
-      content,
-      tags: validTags
-    });
-
-    const savedPost = await post.save();
 
     return NextResponse.json(
       {
         success: true,
-        data: savedPost,
-        message: 'Post created successfully'
+        data: results,
+        message: `${results.length} post(s) created successfully`,
       },
       { status: 201 }
     );
-
   } catch (error: any) {
-    console.error('POST /api/posts error:', error);
+    console.error("POST /api/posts error:", error);
 
-    if (error.name === 'ValidationError') {
-      const validationErrors = Object.values(error.errors).map((err: any) => err.message);
+    if (error.name === "ValidationError") {
+      const validationErrors = Object.values(error.errors).map(
+        (err: any) => err.message
+      );
       return NextResponse.json(
         {
           success: false,
-          error: 'Validation failed',
-          message: validationErrors.join(', ')
+          error: "Validation failed",
+          message: validationErrors.join(", "),
         },
         { status: 400 }
       );
@@ -141,8 +148,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Duplicate entry',
-          message: 'A post with this slug already exists'
+          error: "Duplicate entry",
+          message: "A post with this slug already exists",
         },
         { status: 409 }
       );
@@ -151,8 +158,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error: 'Failed to create post',
-        message: error.message
+        error: "Failed to create post(s)",
+        message: error.message,
       },
       { status: 500 }
     );

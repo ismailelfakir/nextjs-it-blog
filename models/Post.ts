@@ -6,6 +6,7 @@ export interface IPost extends Document {
   slug: string;
   content: string;
   tags: string[];
+  author: string; // ✅ NEW
   createdAt: string;
   updatedAt: string;
   addTag(tag: string): Promise<IPost>;
@@ -47,6 +48,12 @@ const PostSchema: Schema<IPost> = new Schema(
         },
         message: 'Cannot have more than 10 tags',
       },
+    },
+    author: {
+      type: String,
+      default: 'EL FAKIR Ismail', // ✅ Default author name
+      trim: true,
+      maxlength: [100, 'Author name cannot exceed 100 characters'],
     },
   },
   {

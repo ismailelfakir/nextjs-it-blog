@@ -119,34 +119,36 @@ export default function NewPostPage() {
   };
 
   const onSubmit = async (data: PostFormData) => {
-    try {
-      setLoading(true);
+  try {
+    setLoading(true);
 
-      const finalData = {
-        ...data,
-        tags,
-      };
+    const finalData = {
+      ...data,
+      tags,
+      author: "EL FAKIR Ismail" // ✅ inject author here
+    };
 
-      const response = await fetch("/api/posts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(finalData),
-      });
+    const response = await fetch("/api/posts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(finalData),
+    });
 
-      const result = await response.json();
+    const result = await response.json();
 
-      if (result.success) {
-        router.push("/admin/posts");
-      } else {
-        alert(result.message || "Failed to create post");
-      }
-    } catch (error) {
-      console.error("Error creating post:", error);
-      alert("An error occurred while creating the post");
-    } finally {
-      setLoading(false);
+    if (result.success) {
+      router.push("/admin/posts");
+    } else {
+      alert(result.message || "Failed to create post");
     }
-  };
+  } catch (error) {
+    console.error("Error creating post:", error);
+    alert("An error occurred while creating the post");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const handleSignOut = async () => {
     await signOut({ callbackUrl: "/" });
