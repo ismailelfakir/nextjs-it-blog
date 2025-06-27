@@ -16,7 +16,22 @@ import {
   BookOpen
 } from 'lucide-react';
 import { generateMetadata, generateStructuredData } from '@/lib/seo-utils';
+import Post from '@/models/Post';
+import connectDB from '@/lib/db';
 import type { Metadata } from 'next';
+
+// Define the shape of a post for the UI, including fields needed for display
+interface Post {
+  id: string;
+  title: string;
+  slug: string;
+  description: string;
+  category: string;
+  createdAt: string;
+  author: string;
+  readTime: string;
+  tags: string[];
+}
 
 export const metadata: Metadata = generateMetadata({
   title: 'TechInsights - IT Blog & Technology News',
@@ -25,37 +40,45 @@ export const metadata: Metadata = generateMetadata({
   type: 'website',
 });
 
-export default function Home() {
-  const featuredPosts = [
-    {
-      title: "The Future of AI in Software Development",
-      description: "Exploring how artificial intelligence is revolutionizing the way we write, test, and deploy code.",
-      category: "AI & Machine Learning",
-      date: "Dec 15, 2024",
-      author: "Sarah Chen",
-      readTime: "8 min read",
-      tags: ["AI", "Development", "Future Tech"]
-    },
-    {
-      title: "Microservices Architecture: Best Practices",
-      description: "A comprehensive guide to designing scalable microservices with real-world examples and patterns.",
-      category: "Architecture",
-      date: "Dec 12, 2024",
-      author: "Michael Rodriguez",
-      readTime: "12 min read",
-      tags: ["Microservices", "Architecture", "Scalability"]
-    },
-    {
-      title: "Cybersecurity Trends for 2025",
-      description: "What IT professionals need to know about emerging security threats and defense strategies.",
-      category: "Security",
-      date: "Dec 10, 2024",
-      author: "Alex Johnson",
-      readTime: "6 min read",
-      tags: ["Security", "Trends", "Best Practices"]
-    }
-  ];
+// Helper function to calculate read time based on content length
+const calculateReadTime = (content: string): string => {
+  const wordsPerMinute = 200;
+  const wordCount = content.split(/\s+/).length;
+  const minutes = Math.ceil(wordCount / wordsPerMinute);
+  return `${minutes} min read`;
+};
 
+// Helper function to generate description from content
+const generateDescription = (content: string): string => {
+  const plainText = content.replace(/<[^>]+>/g, ''); // Strip HTML tags
+  return plainText.length > 150 ? plainText.slice(0, 150) + '...' : plainText;
+};
+
+export default async function Home() {
+  // Connect to MongoDB
+  await connectDB();
+
+  // Fetch the latest 3 posts from the database
+  const rawPosts = await Post.find()
+    .sort({ createdAt: -1 }) // Sort by newest first
+    .limit(3) // Limit to 3 featured posts
+    .select('title slug content tags createdAt author') // Select relevant fields
+    .lean(); // Convert to plain objects
+
+  // Transform posts to match UI requirements
+  const featuredPosts: Post[] = rawPosts.map((post) => ({
+    id: post._id.toString(),
+    title: post.title,
+    slug: post.slug,
+    description: generateDescription(post.content),
+    category: post.tags[0] || 'General', // Use first tag as category or default
+    createdAt: post.createdAt,
+    author: post.author || 'EL FAKIR Ismail',
+    readTime: calculateReadTime(post.content),
+    tags: post.tags,
+  }));
+
+  // Static categories (unchanged)
   const categories = [
     { name: "Programming", icon: Code, count: 42, color: "bg-blue-500" },
     { name: "Database", icon: Database, count: 28, color: "bg-green-500" },
@@ -152,41 +175,43 @@ export default function Home() {
             </div>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               {featuredPosts.map((post, index) => (
-                <Card key={index} className="group hover:shadow-xl transition-all duration-300 cursor-pointer border-0 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm overflow-hidden">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between mb-3">
-                      <Badge variant="secondary" className="text-xs bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300">
-                        {post.category}
-                      </Badge>
-                      <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
-                        <Calendar className="w-3 h-3 mr-1" />
-                        {post.date}
-                      </div>
-                    </div>
-                    <CardTitle className="text-xl group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2 text-gray-900 dark:text-white">
-                      {post.title}
-                    </CardTitle>
-                    <CardDescription className="text-sm leading-relaxed line-clamp-3 text-gray-600 dark:text-gray-300">
-                      {post.description}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      {post.tags.map((tag, tagIndex) => (
-                        <Badge key={tagIndex} variant="outline" className="text-xs border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400">
-                          {tag}
+                <Link key={index} href={`/blog/${post.slug}`}>
+                  <Card className="group hover:shadow-xl transition-all duration-300 cursor-pointer border-0 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm overflow-hidden">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between mb-3">
+                        <Badge variant="secondary" className="text-xs bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300">
+                          {post.category}
                         </Badge>
-                      ))}
-                    </div>
-                    <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
-                      <div className="flex items-center">
-                        <User className="w-4 h-4 mr-1" />
-                        {post.author}
+                        <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
+                          <Calendar className="w-3 h-3 mr-1" />
+                          {new Date(post.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                        </div>
                       </div>
-                      <span>{post.readTime}</span>
-                    </div>
-                  </CardContent>
-                </Card>
+                      <CardTitle className="text-xl group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2 text-gray-900 dark:text-white">
+                        {post.title}
+                      </CardTitle>
+                      <CardDescription className="text-sm leading-relaxed line-clamp-3 text-gray-600 dark:text-gray-300">
+                        {post.description}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        {post.tags.map((tag, tagIndex) => (
+                          <Badge key={tagIndex} variant="outline" className="text-xs border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400">
+                            {tag}
+                          </Badge>
+                        ))}
+                      </div>
+                      <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
+                        <div className="flex items-center">
+                          <User className="w-4 h-4 mr-1" />
+                          {post.author}
+                        </div>
+                        <span>{post.readTime}</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
               ))}
             </div>
             <div className="text-center mt-12">
@@ -212,7 +237,7 @@ export default function Home() {
                 <input
                   type="email"
                   placeholder="Enter your email"
-                  className="flex-1 px-4 py-3 rounded-lg border-0 text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-white/50 focus:outline-none"
+                  className="flex-1 px-4 py-3 rounded-lg border-0 text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-white/50 focus:outline-none text-base"
                 />
                 <Button className="bg-white text-blue-600 hover:bg-gray-100 px-8">
                   Subscribe
@@ -241,7 +266,7 @@ export default function Home() {
                 <Link href="/contact" className="hover:text-white transition-colors">Contact</Link>
               </div>
               <div className="mt-8 pt-6 border-t border-slate-800 dark:border-slate-700 text-slate-500 dark:text-slate-600 text-sm">
-                © 2024 TechInsights. All rights reserved.
+                © 2025 TechInsights. All rights reserved.
               </div>
             </div>
           </div>

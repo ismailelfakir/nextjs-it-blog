@@ -1022,7 +1022,3 @@ SOFTWARE.
 **Built with ismail for the developer community**
 
 For more information, visit our [website](https://techinsights.dev) or follow us on [Twitter](https://twitter.com/techinsights).
-
----
-
-*Last updated: December 2024*
