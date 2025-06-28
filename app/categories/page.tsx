@@ -121,20 +121,20 @@ export default function CategoriesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 transition-colors duration-300">
       <Header />
 
       {/* Hero Section */}
       <section className="py-16 lg:py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center space-y-6">
-            <h1 className="text-4xl sm:text-5xl font-bold tracking-tight">
+            <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-gray-900 dark:text-white">
               Browse{' '}
-              <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 dark:from-blue-700 dark:to-purple-700 bg-clip-text text-transparent">
                 Categories
               </span>
             </h1>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto leading-relaxed">
               Explore our comprehensive collection of technology topics and find articles 
               that match your interests and expertise level.
             </p>
@@ -145,19 +145,19 @@ export default function CategoriesPage() {
       {/* Search Section */}
       <section className="pb-8">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border shadow-sm">
+          <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
             <div className="flex items-center space-x-4">
               <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 w-4 h-4" />
                 <Input
                   type="text"
                   placeholder="Search categories..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600 focus:ring-blue-500 dark:focus:ring-blue-400"
                 />
               </div>
-              <div className="text-sm text-muted-foreground">
+              <div className="text-sm text-gray-600 dark:text-gray-300">
                 {filteredCategories.length} categories
               </div>
             </div>
@@ -170,14 +170,14 @@ export default function CategoriesPage() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           {loading ? (
             <div className="flex justify-center items-center py-16">
-              <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-              <span className="ml-2 text-muted-foreground">Loading categories...</span>
+              <Loader2 className="w-8 h-8 animate-spin text-blue-600 dark:text-blue-400" />
+              <span className="ml-2 text-gray-600 dark:text-gray-300">Loading categories...</span>
             </div>
           ) : filteredCategories.length === 0 ? (
             <div className="text-center py-16">
-              <Tag className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-foreground mb-2">No categories found</h3>
-              <p className="text-muted-foreground">
+              <Tag className="w-16 h-16 text-gray-500 dark:text-gray-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">No categories found</h3>
+              <p className="text-gray-600 dark:text-gray-300">
                 {searchTerm 
                   ? 'Try adjusting your search criteria.' 
                   : 'No categories are available at the moment.'}
@@ -187,29 +187,29 @@ export default function CategoriesPage() {
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredCategories.map((category, index) => (
                 <Link key={category.name} href={`/blog?tag=${encodeURIComponent(category.name)}`}>
-                  <Card className="group hover:shadow-xl transition-all duration-300 cursor-pointer border-0 bg-white/80 backdrop-blur-sm overflow-hidden h-full">
+                  <Card className="group hover:shadow-xl transition-all duration-300 cursor-pointer border-0 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm dark:border-gray-700 overflow-hidden h-full">
                     <CardHeader className="pb-3">
                       <div className="flex items-center justify-between mb-3">
-                        <div className={`w-12 h-12 rounded-xl ${getCategoryColor(index)} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
+                        <div className={`w-12 h-12 rounded-xl ${getCategoryColor(index)} dark:brightness-90 flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
                           <Tag className="w-6 h-6 text-white" />
                         </div>
-                        <Badge variant="secondary" className="text-xs">
+                        <Badge variant="secondary" className="text-xs bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300">
                           {category.count} article{category.count !== 1 ? 's' : ''}
                         </Badge>
                       </div>
-                      <CardTitle className="text-xl group-hover:text-blue-600 transition-colors">
+                      <CardTitle className="text-xl group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors text-gray-900 dark:text-white">
                         {category.name}
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="pt-0 flex-1 flex flex-col justify-between">
-                      <p className="text-sm text-muted-foreground leading-relaxed mb-4">
+                      <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-4">
                         {category.description}
                       </p>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">
+                        <span className="text-sm text-gray-600 dark:text-gray-300">
                           Explore articles
                         </span>
-                        <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-blue-600 group-hover:translate-x-1 transition-all" />
+                        <ArrowRight className="w-4 h-4 text-gray-600 dark:text-gray-300 group-hover:text-blue-600 dark:group-hover:text-blue-400 group-hover:translate-x-1 transition-all" />
                       </div>
                     </CardContent>
                   </Card>
@@ -221,22 +221,22 @@ export default function CategoriesPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 bg-gradient-to-r from-blue-600 to-purple-600">
+      <section className="py-16 bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-700 dark:to-purple-700">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="space-y-6">
             <h2 className="text-3xl font-bold text-white">Can't find what you're looking for?</h2>
-            <p className="text-xl text-blue-100">
+            <p className="text-xl text-blue-100 dark:text-blue-200">
               Browse all our articles or get in touch with suggestions for new topics
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/blog">
-                <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 px-8">
+                <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 dark:hover:bg-gray-200 px-8">
                   <BookOpen className="w-5 h-5 mr-2" />
                   View All Articles
                 </Button>
               </Link>
               <Link href="/contact">
-                <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-blue-600 px-8">
+                <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-blue-600 dark:hover:text-blue-700 dark:hover:bg-gray-200 px-8">
                   Suggest a Topic
                 </Button>
               </Link>
@@ -246,25 +246,25 @@ export default function CategoriesPage() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-slate-900 text-white py-12">
+      <footer className="bg-slate-900 dark:bg-slate-950 text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <div className="flex items-center justify-center space-x-3 mb-4">
-              <div className="w-8 h-8 bg-gradient-to-tr from-blue-400 to-purple-400 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-gradient-to-tr from-blue-400 to-purple-400 dark:from-blue-500 dark:to-purple-500 rounded-lg flex items-center justify-center">
                 <Code className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold">TechInsights</span>
+              <span className="text-xl font-bold text-white">TechInsights</span>
             </div>
-            <p className="text-slate-400 mb-6">
+            <p className="text-slate-400 dark:text-slate-500 mb-6">
               Empowering IT professionals with knowledge and insights
             </p>
-            <div className="flex justify-center space-x-6 text-sm text-slate-400">
-              <Link href="/privacy-policy" className="hover:text-white transition-colors">Privacy Policy</Link>
-              <Link href="#" className="hover:text-white transition-colors">Terms of Service</Link>
-              <Link href="/contact" className="hover:text-white transition-colors">Contact</Link>
+            <div className="flex justify-center space-x-6 text-sm text-slate-400 dark:text-slate-500">
+              <Link href="/privacy-policy" className="hover:text-white dark:hover:text-gray-200 transition-colors">Privacy Policy</Link>
+              <Link href="#" className="hover:text-white dark:hover:text-gray-200 transition-colors">Terms of Service</Link>
+              <Link href="/contact" className="hover:text-white dark:hover:text-gray-200 transition-colors">Contact</Link>
             </div>
-            <div className="mt-8 pt-6 border-t border-slate-800 text-slate-500 text-sm">
-              © 2024 TechInsights. All rights reserved.
+            <div className="mt-8 pt-6 border-t border-slate-800 dark:border-slate-700 text-slate-500 dark:text-slate-600 text-sm">
+              © 2025 TechInsights. All rights reserved.
             </div>
           </div>
         </div>

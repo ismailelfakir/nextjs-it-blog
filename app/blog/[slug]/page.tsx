@@ -15,7 +15,7 @@ interface Post {
   slug: string;
   content: string;
   tags: string[];
-  author?: string; // ✅ optional field
+  author?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -117,7 +117,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
 
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 transition-colors duration-300">
         <Header />
 
         {/* Back Navigation */}
@@ -126,7 +126,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             <Link href="/blog">
               <Button
                 variant="ghost"
-                className="hover:bg-blue-50 hover:text-blue-600"
+                className="hover:bg-blue-50 dark:hover:bg-slate-700 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to Articles
@@ -138,7 +138,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         {/* Article Content */}
         <article className="pb-16">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-xl">
+            <Card className="border-0 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm shadow-xl dark:border-gray-700">
               <CardContent className="p-8 lg:p-12">
                 {/* Article Header */}
                 <header className="mb-8">
@@ -147,7 +147,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                       <Badge
                         key={index}
                         variant="secondary"
-                        className="text-xs"
+                        className="text-xs bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300"
                       >
                         <Tag className="w-3 h-3 mr-1" />
                         {tag}
@@ -155,17 +155,17 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                     ))}
                   </div>
 
-                  <h1 className="text-3xl lg:text-4xl font-bold text-foreground mb-6 leading-tight">
+                  <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
                     {post.title}
                   </h1>
 
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b">
-                    <div className="flex items-center space-x-6 text-sm text-muted-foreground">
-                      <div className="flex items-center">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-gray-200 dark:border-gray-700">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-6 text-sm text-gray-600 dark:text-gray-300">
+                      <div className="flex items-center mb-2 sm:mb-0">
                         <User className="w-4 h-4 mr-2" />
                         {post.author || "EL FAKIR Ismail"}
                       </div>
-                      <div className="flex items-center">
+                      <div className="flex items-center mb-2 sm:mb-0">
                         <Calendar className="w-4 h-4 mr-2" />
                         {formatDate(post.createdAt)}
                       </div>
@@ -182,7 +182,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                 {/* Article Body */}
                 <div className="prose prose-lg max-w-none">
                   <div
-                    className="text-foreground leading-relaxed"
+                    className="text-gray-900 dark:text-gray-100 leading-relaxed"
                     style={{
                       lineHeight: "1.8",
                       fontSize: "1.1rem",
@@ -194,9 +194,9 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                 </div>
 
                 {/* Article Footer */}
-                <footer className="mt-12 pt-8 border-t">
+                <footer className="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div className="text-sm text-muted-foreground">
+                    <div className="text-sm text-gray-600 dark:text-gray-300">
                       Last updated: {formatDate(post.updatedAt)}
                     </div>
 
@@ -211,8 +211,14 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             {/* Navigation */}
             <div className="mt-8 flex justify-center">
               <Link href="/blog">
-                <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 px-8">
-                  <BookOpen className="w-4 h-4 mr-2" />
+                <Button
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 
+                 hover:from-blue-700 hover:to-purple-700
+                 dark:from-blue-500 dark:to-purple-500 
+                 dark:hover:from-blue-600 dark:hover:to-purple-600 
+                 text-white dark:text-white px-8 transition-colors duration-300"
+                >
+                  <BookOpen className="w-4 h-4 mr-2 text-white dark:text-white" />
                   Read More Articles
                 </Button>
               </Link>

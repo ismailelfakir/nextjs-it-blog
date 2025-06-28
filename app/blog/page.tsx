@@ -117,6 +117,7 @@ export default function BlogPage() {
   const handleTagFilter = (tag: string) => {
     setSelectedTag(tag === selectedTag ? "" : tag);
     setCurrentPage(1);
+    fetchPosts(1, searchTerm, tag === selectedTag ? "" : tag);
   };
 
   const formatDate = (dateString: string) => {
@@ -164,15 +165,15 @@ export default function BlogPage() {
           />
           <meta name="robots" content="noindex" />
         </Head>
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 transition-colors duration-300">
           <Header />
           <div className="max-w-4xl mx-auto px-4 py-16">
             <div className="text-center">
-              <h1 className="text-2xl font-bold text-red-600 mb-4">Error</h1>
-              <p className="text-muted-foreground">{error}</p>
+              <h1 className="text-2xl font-bold text-red-600 dark:text-red-400 mb-4">Error</h1>
+              <p className="text-gray-600 dark:text-gray-300">{error}</p>
               <Button
                 onClick={() => fetchPosts(currentPage, searchTerm, selectedTag)}
-                className="mt-4"
+                className="mt-4 bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-700 dark:to-purple-700 hover:from-blue-700 hover:to-purple-700 dark:hover:from-blue-800 dark:hover:to-purple-800"
               >
                 Try Again
               </Button>
@@ -249,20 +250,20 @@ export default function BlogPage() {
         />
       </Head>
 
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 transition-colors duration-300">
         <Header />
 
         {/* Hero Section */}
         <section className="py-16 lg:py-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center space-y-6">
-              <h1 className="text-4xl sm:text-5xl font-bold tracking-tight">
+              <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-gray-900 dark:text-white">
                 Latest{" "}
-                <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 dark:from-blue-700 dark:to-purple-700 bg-clip-text text-transparent">
                   Articles
                 </span>
               </h1>
-              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
                 Explore in-depth articles about technology, programming, and IT
                 insights
               </p>
@@ -273,26 +274,26 @@ export default function BlogPage() {
         {/* Search and Filter Section */}
         <section className="pb-8">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border shadow-sm">
+            <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
               <form
                 onSubmit={handleSearch}
                 className="flex flex-col sm:flex-row gap-4 mb-6"
               >
                 <div className="flex-1 relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 w-4 h-4" />
                   <Input
                     type="text"
                     placeholder="Search articles..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
+                    className="pl-10 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600 focus:ring-blue-500 dark:focus:ring-blue-400"
                   />
                 </div>
                 <Button
                   type="submit"
-                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-700 dark:to-purple-700 hover:from-blue-700 hover:to-purple-700 dark:hover:from-blue-800 dark:hover:to-purple-800"
                 >
-                  <Search className="w-4 h-4 mr-2" />
+                  <Search className="w-4 h-4 mr-2 text-white" />
                   Search
                 </Button>
               </form>
@@ -301,8 +302,8 @@ export default function BlogPage() {
               {allTags.length > 0 && (
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
-                    <Filter className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-sm font-medium text-muted-foreground">
+                    <Filter className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                    <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
                       Filter by tags:
                     </span>
                   </div>
@@ -313,8 +314,8 @@ export default function BlogPage() {
                         variant={selectedTag === tag ? "default" : "outline"}
                         className={`cursor-pointer transition-all hover:scale-105 ${
                           selectedTag === tag
-                            ? "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-                            : "hover:bg-blue-50"
+                            ? "bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-700 dark:to-purple-700 hover:from-blue-700 hover:to-purple-700 dark:hover:from-blue-800 dark:hover:to-purple-800 text-white"
+                            : "bg-white dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-slate-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600"
                         }`}
                         onClick={() => handleTagFilter(tag)}
                       >
@@ -334,18 +335,18 @@ export default function BlogPage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             {loading ? (
               <div className="flex justify-center items-center py-16">
-                <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-                <span className="ml-2 text-muted-foreground">
+                <Loader2 className="w-8 h-8 animate-spin text-blue-600 dark:text-blue-400" />
+                <span className="ml-2 text-gray-600 dark:text-gray-300">
                   Loading articles...
                 </span>
               </div>
             ) : posts.length === 0 ? (
               <div className="text-center py-16">
-                <BookOpen className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-foreground mb-2">
+                <BookOpen className="w-16 h-16 text-gray-500 dark:text-gray-400 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
                   No articles found
                 </h3>
-                <p className="text-muted-foreground">
+                <p className="text-gray-600 dark:text-gray-300">
                   {searchTerm || selectedTag
                     ? "Try adjusting your search or filter criteria."
                     : "No articles have been published yet."}
@@ -356,22 +357,22 @@ export default function BlogPage() {
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                   {posts.map((post) => (
                     <Link key={post.id} href={`/blog/${post.slug}`}>
-                      <Card className="group hover:shadow-xl transition-all duration-300 cursor-pointer border-0 bg-white/80 backdrop-blur-sm overflow-hidden h-full">
+                      <Card className="group hover:shadow-xl transition-all duration-300 cursor-pointer border-0 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm dark:border-gray-700 overflow-hidden h-full">
                         <CardHeader className="pb-3">
                           <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center text-xs text-muted-foreground">
+                            <div className="flex items-center text-xs text-gray-600 dark:text-gray-300">
                               <Calendar className="w-3 h-3 mr-1" />
                               {formatDate(post.createdAt)}
                             </div>
-                            <div className="flex items-center text-xs text-muted-foreground">
+                            <div className="flex items-center text-xs text-gray-600 dark:text-gray-300">
                               <Clock className="w-3 h-3 mr-1" />
                               {getReadingTime(post.content)}
                             </div>
                           </div>
-                          <CardTitle className="text-xl group-hover:text-blue-600 transition-colors line-clamp-2">
+                          <CardTitle className="text-xl group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors text-gray-900 dark:text-white line-clamp-2">
                             {post.title}
                           </CardTitle>
-                          <CardDescription className="text-sm leading-relaxed line-clamp-3">
+                          <CardDescription className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed line-clamp-3">
                             {truncateContent(
                               post.content.replace(/<[^>]*>/g, "")
                             )}
@@ -383,23 +384,26 @@ export default function BlogPage() {
                               <Badge
                                 key={tagIndex}
                                 variant="outline"
-                                className="text-xs"
+                                className="text-xs text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600"
                               >
                                 {tag}
                               </Badge>
                             ))}
                             {post.tags.length > 3 && (
-                              <Badge variant="outline" className="text-xs">
+                              <Badge
+                                variant="outline"
+                                className="text-xs text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600"
+                              >
                                 +{post.tags.length - 3} more
                               </Badge>
                             )}
                           </div>
                           <div className="flex items-center justify-between">
-                            <div className="flex items-center text-sm text-muted-foreground">
+                            <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
                               <User className="w-4 h-4 mr-1" />
                               EL FAKIR Ismail
                             </div>
-                            <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-blue-600 group-hover:translate-x-1 transition-all" />
+                            <ArrowRight className="w-4 h-4 text-gray-600 dark:text-gray-300 group-hover:text-blue-600 dark:group-hover:text-blue-400 group-hover:translate-x-1 transition-all" />
                           </div>
                         </CardContent>
                       </Card>
@@ -414,7 +418,7 @@ export default function BlogPage() {
                       variant="outline"
                       onClick={() => setCurrentPage(currentPage - 1)}
                       disabled={!pagination.hasPrev}
-                      className="px-6"
+                      className="px-6 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700"
                     >
                       Previous
                     </Button>
@@ -432,8 +436,8 @@ export default function BlogPage() {
                               onClick={() => setCurrentPage(pageNum)}
                               className={`w-10 h-10 p-0 ${
                                 currentPage === pageNum
-                                  ? "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-                                  : ""
+                                  ? "bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-700 dark:to-purple-700 hover:from-blue-700 hover:to-purple-700 dark:hover:from-blue-800 dark:hover:to-purple-800 text-white"
+                                  : "border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700"
                               }`}
                             >
                               {pageNum}
@@ -446,7 +450,7 @@ export default function BlogPage() {
                       variant="outline"
                       onClick={() => setCurrentPage(currentPage + 1)}
                       disabled={!pagination.hasNext}
-                      className="px-6"
+                      className="px-6 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700"
                     >
                       Next
                     </Button>
@@ -455,7 +459,7 @@ export default function BlogPage() {
 
                 {/* Results Summary */}
                 {pagination && (
-                  <div className="text-center mt-8 text-sm text-muted-foreground">
+                  <div className="text-center mt-8 text-sm text-gray-600 dark:text-gray-300">
                     Showing {(pagination.page - 1) * pagination.limit + 1} to{" "}
                     {Math.min(
                       pagination.page * pagination.limit,
