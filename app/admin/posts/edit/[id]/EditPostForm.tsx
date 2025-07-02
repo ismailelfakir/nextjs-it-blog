@@ -38,8 +38,7 @@ import {
   Save,
   Eye,
   Loader2,
-  X,
-  AlertCircle,
+  X
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { toast } from "sonner";
@@ -84,9 +83,9 @@ export default function EditPostForm({ post }: EditPostFormProps) {
 
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
-  const [content, setContent] = useState(post.content);
+  const [content, setContent] = useState("");
   const [tagInput, setTagInput] = useState("");
-  const [tags, setTags] = useState<string[]>(post.tags);
+  const [tags, setTags] = useState<string[]>([]);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [isFormDirty, setIsFormDirty] = useState(false);
 
@@ -99,29 +98,38 @@ export default function EditPostForm({ post }: EditPostFormProps) {
   } = useForm<PostFormData>({
     resolver: zodResolver(postSchema),
     defaultValues: {
-      title: post.title,
-      slug: post.slug,
-      content: post.content,
-      tags: post.tags,
+      title: "",
+      slug: "",
+      content: "",
+      tags: [],
     },
   });
 
   const watchedTitle = watch("title");
   const watchedSlug = watch("slug");
 
+  // Initialize form and content
+  useEffect(() => {
+    if (post) {
+      console.log("Post data:", post); // Debug: Verify post data
+      setValue("title", post.title || "", { shouldDirty: false });
+      setValue("slug", post.slug || "", { shouldDirty: false });
+      setValue("content", post.content || "", { shouldDirty: false });
+      setValue("tags", post.tags || [], { shouldDirty: false });
+      setContent(post.content || "<p></p>");
+      setTags(post.tags || []);
+      setInitialLoading(false);
+    }
+  }, [post, setValue]);
+
   // Track form dirty state
   useEffect(() => {
     setIsFormDirty(
       isDirty ||
-        content !== post.content ||
-        JSON.stringify(tags) !== JSON.stringify(post.tags)
+        content !== (post.content || "<p></p>") ||
+        JSON.stringify(tags) !== JSON.stringify(post.tags || [])
     );
   }, [isDirty, content, tags, post.content, post.tags]);
-
-  // Simulate initial loading
-  useEffect(() => {
-    setInitialLoading(false);
-  }, []);
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -167,6 +175,8 @@ export default function EditPostForm({ post }: EditPostFormProps) {
         setTagInput("");
       } else if (tagExists) {
         toast.error("Tag already exists");
+      } else if (tags.length >= 10) {
+        toast.error("Cannot add more than 10 tags");
       }
     }
   };
@@ -178,33 +188,25 @@ export default function EditPostForm({ post }: EditPostFormProps) {
 
   // Handle form submission
   const onSubmit = async (data: PostFormData) => {
-    const finalData = {
-      ...data,
-      tags, // override the form's stale tags with your state
-    };
-
+    const finalData = { ...data, tags };
     try {
       setLoading(true);
-      const response = await fetch(
-        post ? `/api/posts/${post.id}` : "/api/posts",
-        {
-          method: post ? "PUT" : "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(finalData),
-        }
-      );
+      const response = await fetch(`/api/posts/${post.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(finalData),
+      });
 
       const result = await response.json();
-
       if (result.success) {
-        toast?.success?.("Post saved successfully!");
+        toast.success("Post updated successfully!");
         router.push("/admin/posts");
       } else {
-        toast?.error?.(result.message || "Failed to save post");
+        toast.error(result.message || "Failed to update post");
       }
     } catch (error) {
-      console.error("Error saving post:", error);
-      toast?.error?.("An error occurred while saving the post");
+      console.error("Error updating post:", error);
+      toast.error("An error occurred while updating the post");
     } finally {
       setLoading(false);
     }
@@ -215,7 +217,7 @@ export default function EditPostForm({ post }: EditPostFormProps) {
     await signOut({ callbackUrl: "/" });
   };
 
-  // Handle cancel with confirmation
+  // Handle cancel
   const handleCancel = () => {
     if (isFormDirty) {
       setCancelDialogOpen(true);
@@ -227,10 +229,10 @@ export default function EditPostForm({ post }: EditPostFormProps) {
   // Render loading state
   if (status === "loading" || initialLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading...</p>
+          <Loader2 className="w-8 h-8 animate-spin text-blue-600 dark:text-blue-400 mx-auto mb-4" />
+          <p className="text-muted-foreground dark:text-slate-400">Loading...</p>
         </div>
       </div>
     );
@@ -242,9 +244,9 @@ export default function EditPostForm({ post }: EditPostFormProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
       {/* Header */}
-      <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
+      <header className="border-b bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
@@ -255,24 +257,24 @@ export default function EditPostForm({ post }: EditPostFormProps) {
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                   Edit Post
                 </h1>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground dark:text-slate-400">
                   Update your blog post
                 </p>
               </div>
             </div>
             <div className="flex items-center space-x-4">
               <div className="text-right">
-                <p className="text-sm font-medium">
+                <p className="text-sm font-medium dark:text-white">
                   {session.user?.name || "Admin"}
                 </p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-muted-foreground dark:text-slate-400">
                   {session.user?.email || ""}
                 </p>
               </div>
               <Button
                 variant="outline"
                 onClick={handleSignOut}
-                className="hover:bg-red-50 hover:text-red-600 hover:border-red-200"
+                className="hover:bg-red-50 dark:hover:bg-red-900/50 hover:text-red-600 dark:hover:text-red-400 hover:border-red-200 dark:hover:border-red-700"
               >
                 <LogOut className="w-4 h-4 mr-2" />
                 Sign Out
@@ -289,14 +291,18 @@ export default function EditPostForm({ post }: EditPostFormProps) {
           <Link href="/admin/posts">
             <Button
               variant="ghost"
-              className="hover:bg-blue-50 hover:text-blue-600"
+              className="hover:bg-blue-50 dark:hover:bg-blue-900/50 hover:text-blue-600 dark:hover:text-blue-400"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Posts
             </Button>
           </Link>
           <Link href={`/blog/${post.slug}`} target="_blank">
-            <Button variant="outline" size="sm">
+            <Button
+              variant="outline"
+              size="sm"
+              className="dark:border-slate-600 dark:hover:bg-slate-700"
+            >
               <Eye className="w-4 h-4 mr-2" />
               Preview
             </Button>
@@ -305,66 +311,72 @@ export default function EditPostForm({ post }: EditPostFormProps) {
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
           {/* Basic Information */}
-          <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-sm">
+          <Card className="border-0 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm shadow-sm">
             <CardHeader>
-              <CardTitle>Post Details</CardTitle>
-              <CardDescription>
+              <CardTitle className="dark:text-white">Post Details</CardTitle>
+              <CardDescription className="dark:text-slate-400">
                 Update the basic information about your blog post
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="title">Title *</Label>
+                <Label htmlFor="title" className="dark:text-white">
+                  Title *
+                </Label>
                 <Input
                   id="title"
                   {...register("title")}
                   placeholder="Enter post title"
-                  className={errors.title ? "border-red-500" : ""}
+                  className={errors.title ? "border-red-500 dark:border-red-400" : "dark:bg-slate-700 dark:text-white"}
                 />
                 {errors.title && (
-                  <p className="text-sm text-red-600">{errors.title.message}</p>
+                  <p className="text-sm text-red-600 dark:text-red-400">{errors.title.message}</p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="slug">Slug *</Label>
+                <Label htmlFor="slug" className="dark:text-white">
+                  Slug *
+                </Label>
                 <Input
                   id="slug"
                   {...register("slug")}
                   placeholder="post-url-slug"
-                  className={errors.slug ? "border-red-500" : ""}
+                  className={errors.slug ? "border-red-500 dark:border-red-400" : "dark:bg-slate-700 dark:text-white"}
                 />
                 {errors.slug && (
-                  <p className="text-sm text-red-600">{errors.slug.message}</p>
+                  <p className="text-sm text-red-600 dark:text-red-400">{errors.slug.message}</p>
                 )}
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground dark:text-slate-400">
                   This will be the URL path for your post. Be careful when
                   changing this as it will break existing links.
                 </p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="tags">Tags</Label>
+                <Label htmlFor="tags" className="dark:text-white">
+                  Tags
+                </Label>
                 <Input
                   id="tags"
                   value={tagInput}
                   onChange={(e) => setTagInput(e.target.value)}
                   onKeyDown={handleAddTag}
                   placeholder="Type a tag and press Enter or comma"
-                  className="mb-2"
+                  className="mb-2 dark:bg-slate-700 dark:text-white"
                 />
                 <div className="flex flex-wrap gap-2">
                   {tags.map((tag, index) => (
                     <Badge
                       key={index}
                       variant="secondary"
-                      className="flex items-center gap-1"
+                      className="flex items-center gap-1 dark:bg-slate-700 dark:text-white"
                     >
                       {tag}
                       <button
                         type="button"
                         onClick={() => handleRemoveTag(tag)}
-                        className="ml-1 hover:text-red-600"
+                        className="ml-1 hover:text-red-600 dark:hover:text-red-400"
                       >
                         <X className="w-3 h-3" />
                       </button>
@@ -372,23 +384,23 @@ export default function EditPostForm({ post }: EditPostFormProps) {
                   ))}
                 </div>
                 {tags.length === 0 && (
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-muted-foreground dark:text-slate-400">
                     Add tags to help categorize your post. Press Enter or comma
                     to add.
                   </p>
                 )}
                 {errors.tags && (
-                  <p className="text-sm text-red-600">{errors.tags.message}</p>
+                  <p className="text-sm text-red-600 dark:text-red-400">{errors.tags.message}</p>
                 )}
               </div>
             </CardContent>
           </Card>
 
           {/* Content Editor */}
-          <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-sm">
+          <Card className="border-0 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm shadow-sm">
             <CardHeader>
-              <CardTitle>Content *</CardTitle>
-              <CardDescription>
+              <CardTitle className="dark:text-white">Content *</CardTitle>
+              <CardDescription className="dark:text-slate-400">
                 Update your blog post content using the rich text editor
               </CardDescription>
             </CardHeader>
@@ -398,9 +410,20 @@ export default function EditPostForm({ post }: EditPostFormProps) {
                 onChange={setContent}
                 placeholder="Start writing your blog post..."
                 theme="snow"
+                modules={{
+                  toolbar: [
+                    [{ header: [1, 2, 3, false] }],
+                    ["bold", "italic", "underline", "strike"],
+                    [{ list: "ordered" }, { list: "bullet" }],
+                    ["link", "image"],
+                    ["blockquote", "code-block"],
+                    ["clean"],
+                  ],
+                }}
+                className="dark:bg-slate-700 dark:text-white"
               />
               {errors.content && (
-                <p className="text-sm text-red-600 mt-2">
+                <p className="text-sm text-red-600 dark:text-red-400 mt-2">
                   {errors.content.message}
                 </p>
               )}
@@ -414,16 +437,16 @@ export default function EditPostForm({ post }: EditPostFormProps) {
                 <Button
                   type="button"
                   variant="outline"
-                  className="w-full sm:w-auto"
+                  className="w-full sm:w-auto dark:border-slate-600 dark:hover:bg-slate-700"
                   onClick={() => isFormDirty && setCancelDialogOpen(true)}
                 >
                   Cancel
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-md">
+              <DialogContent className="sm:max-w-md dark:bg-slate-800">
                 <DialogHeader>
-                  <DialogTitle>Discard Changes?</DialogTitle>
-                  <DialogDescription>
+                  <DialogTitle className="dark:text-white">Discard Changes?</DialogTitle>
+                  <DialogDescription className="dark:text-slate-400">
                     You have unsaved changes. Are you sure you want to cancel
                     and discard them?
                   </DialogDescription>
@@ -432,12 +455,14 @@ export default function EditPostForm({ post }: EditPostFormProps) {
                   <Button
                     variant="outline"
                     onClick={() => setCancelDialogOpen(false)}
+                    className="dark:border-slate-600 dark:hover:bg-slate-700"
                   >
                     Stay
                   </Button>
                   <Button
                     variant="destructive"
                     onClick={() => router.push("/admin/posts")}
+                    className="dark:bg-red-700 dark:hover:bg-red-800"
                   >
                     Discard
                   </Button>
